@@ -45,7 +45,6 @@ public class RobotContainer {
   private final ObjectDetection m_ObjectDetection;
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
-
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -85,7 +84,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         break;
     }
-    m_ObjectDetection = new ObjectDetection();
+    m_ObjectDetection = new ObjectDetection(drive, controller);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -118,13 +117,15 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
+    // drive.setDefaultCommand(
+    //     DriveCommands.joystickDrive(
+    //         drive,
+    //         () -> -controller.getLeftY(),
+    //         () -> -controller.getLeftX(),
+    //         () -> -controller.getRightX()));
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
-
+            drive, () -> 0, () -> 0, () -> m_ObjectDetection.getRotation()));
     // Lock to 0° when A button is held
     controller
         .a()
