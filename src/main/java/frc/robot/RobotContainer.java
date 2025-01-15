@@ -125,10 +125,13 @@ public class RobotContainer {
             () -> -controller.getRightX()));
     // Rotate to GamePiece if it sees one
     controller
-        .x()
-        .onTrue(
+        .b()
+        .whileTrue(
             DriveCommands.joystickDrive(
-                drive, () -> 0, () -> 0, () -> m_ObjectDetection.getRotation()));
+                drive,
+                () -> m_ObjectDetection.getStrafe(),
+                () -> m_ObjectDetection.getForward(),
+                () -> m_ObjectDetection.getRotation()));
     // Lock to 0° when A button is held
     controller
         .a()
@@ -144,7 +147,7 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     controller
-        .b()
+        .back()
         .onTrue(
             Commands.runOnce(
                     () ->

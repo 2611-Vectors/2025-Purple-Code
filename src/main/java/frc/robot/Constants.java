@@ -35,7 +35,11 @@ public final class Constants {
     REPLAY
   }
 
-  public static double OBJECT_DECTION_P = 0.05;
-  public static double OBJECT_DECTION_I = 0.0;
-  public static double OBJECT_DECTION_D = 0.0;
+  public static double TURNING_OBJECT_DECTION_P = 0.05;
+  public static double TURNING_OBJECT_DECTION_I = 0.0;
+  public static double TURNING_OBJECT_DECTION_D = 0.0;
+
+  public static double FORWARD_OBJECT_DECTION_P = 0.15;
+  public static double FORWARD_OBJECT_DECTION_I = 0.0;
+  public static double FORWARD_OBJECT_DECTION_D = 0.0;
 }
