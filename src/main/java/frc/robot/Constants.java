@@ -34,4 +34,8 @@ public final class Constants {
     /** Replaying from a log file. */
     REPLAY
   }
+
+  public static double OBJECT_DECTION_P = 0.05;
+  public static double OBJECT_DECTION_I = 0.0;
+  public static double OBJECT_DECTION_D = 0.0;
 }
