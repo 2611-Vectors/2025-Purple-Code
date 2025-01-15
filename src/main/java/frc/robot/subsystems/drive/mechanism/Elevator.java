@@ -5,7 +5,6 @@
 package frc.robot.subsystems.drive.mechanism;
 
 import com.ctre.phoenix6.hardware.TalonFX;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.TunablePIDController;
@@ -20,23 +19,24 @@ public class Elevator extends SubsystemBase {
     rightElevatorMotor = new TalonFX(Constants.ELEVATOR_RIGHT_ID);
     rightElevatorMotor.setInverted(true);
 
-    controllerPID = new TunablePIDController(
-        Constants.ELEVATOR_P,
-        Constants.ELEVATOR_I,
-        Constants.ELEVATOR_D,
-        "/Tuning/ObjectionDection/");
-
+    controllerPID =
+        new TunablePIDController(
+            Constants.ELEVATOR_P,
+            Constants.ELEVATOR_I,
+            Constants.ELEVATOR_D,
+            "/Tuning/ObjectionDection/");
   }
-
 
   public void setElevatorPower(double power) {
     rightElevatorMotor.set(power);
     leftElevatorMotor.set(power);
-  };
+  }
+  ;
 
   public void setElevatorPosition(double position) {
     setElevatorPower(controllerPID.calculate(getElevatorPosition(), position));
-  };
+  }
+  ;
 
   public double getElevatorPosition() {
     return leftElevatorMotor.getPosition().getValueAsDouble();
