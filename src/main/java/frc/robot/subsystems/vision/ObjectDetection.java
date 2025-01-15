@@ -18,7 +18,6 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public class ObjectDetection extends SubsystemBase {
   PhotonCamera camera = new PhotonCamera("Front Camera");
   TunablePIDController controllerPID;
-  ;
   Drive drive;
   CommandXboxController controller;
   double yaw;
