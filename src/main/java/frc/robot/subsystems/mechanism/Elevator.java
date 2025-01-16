@@ -4,13 +4,10 @@
 
 package frc.robot.subsystems.mechanism;
 
-import java.util.concurrent.BlockingDeque;
-
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -34,11 +31,12 @@ public class Elevator extends SubsystemBase {
     // configMotors(leftElevatorMotor, false);
     // configMotors(rightElevatorMotor, true);
 
-    controllerPID = new TunablePIDController(
-        Constants.ELEVATOR_P,
-        Constants.ELEVATOR_I,
-        Constants.ELEVATOR_D,
-        "/Tuning/ObjectionDection/");
+    controllerPID =
+        new TunablePIDController(
+            Constants.ELEVATOR_P,
+            Constants.ELEVATOR_I,
+            Constants.ELEVATOR_D,
+            "/Tuning/ObjectionDection/");
   }
 
   public void configMotors(TalonFX motor, boolean inverted) {
@@ -49,9 +47,8 @@ public class Elevator extends SubsystemBase {
 
     configs.Slot0.kS = 0; // Baseline voltage required to overcome static forces like friction
     configs.Slot0.kG = 0; // Voltage to overcome gravity
-    configs.MotorOutput.Inverted = inverted
-        ? InvertedValue.CounterClockwise_Positive
-        : InvertedValue.Clockwise_Positive;
+    configs.MotorOutput.Inverted =
+        inverted ? InvertedValue.CounterClockwise_Positive : InvertedValue.Clockwise_Positive;
 
     // Peak output of 8 V
     configs.Voltage.PeakForwardVoltage = 8;

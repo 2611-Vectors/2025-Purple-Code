@@ -6,7 +6,7 @@ package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants;
@@ -24,8 +24,8 @@ public class ObjectDetection extends SubsystemBase {
   PIDController forwardPID;
   Drive drive;
   CommandXboxController controller;
-  double yaw;
-  double pitch;
+  double yaw, pitch;
+  Timer objectLostTimer;
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection(Drive drive, CommandXboxController controller) {
@@ -43,23 +43,15 @@ public class ObjectDetection extends SubsystemBase {
             Constants.FORWARD_OBJECT_DECTION_P,
             Constants.FORWARD_OBJECT_DECTION_I,
             Constants.FORWARD_OBJECT_DECTION_D);
+    objectLostTimer = new Timer();
   }
 
   public double getRotation() {
     return turnPID.calculate(yaw, 0);
   }
 
-  public double getForward() {
-    double forwardValue = forwardPID.calculate(pitch, 0) * 0.5;
-    Translation2d point = new Translation2d(0, forwardValue);
-    return point.rotateBy(drive.getRotation().times(-1)).getX();
-  }
-
-  public double getStrafe() {
-    // https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html#clamping-controller-output
-    double forwardValue = MathUtil.clamp(forwardPID.calculate(pitch, 0), -0.5, 0.5);
-    Translation2d point = new Translation2d(0, forwardValue);
-    return point.rotateBy(drive.getRotation().times(-1)).getY();
+  public double getRawForward() {
+    return MathUtil.clamp(forwardPID.calculate(pitch, 0), -0.5, 0.5);
   }
 
   public void updateProperties() {
@@ -75,7 +67,14 @@ public class ObjectDetection extends SubsystemBase {
     // Iterates through all the results
     for (PhotonPipelineResult result : results) {
       // Stops the Robot if the piece is out of view
-      if (result.targets.size() < 1) {
+      if (result.targets.isEmpty()) {
+        objectLostTimer.start();
+      } else if (objectLostTimer.isRunning()) {
+        objectLostTimer.stop();
+        objectLostTimer.reset();
+      }
+
+      if (objectLostTimer.hasElapsed(0.15)) {
         yaw = 0;
         pitch = 0;
       }
