@@ -41,8 +41,8 @@ public final class Constants {
   public static double ELEVATOR_LEVEL_3 = 1500.0;
   public static double ELEVATOR_LEVEL_4 = 2000.0;
 
-  public static int ELEVATOR_LEFT_ID = 1;
-  public static int ELEVATOR_RIGHT_ID = 2;
+  public static int ELEVATOR_LEFT_ID = 31;
+  public static int ELEVATOR_RIGHT_ID = 32;
 
   public static double ELEVATOR_P = 0;
   public static double ELEVATOR_I = 0;
