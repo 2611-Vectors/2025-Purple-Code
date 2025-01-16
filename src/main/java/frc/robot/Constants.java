@@ -47,7 +47,7 @@ public final class Constants {
   public static double ELEVATOR_P = 0;
   public static double ELEVATOR_I = 0;
   public static double ELEVATOR_D = 0;
-  
+
   public static double TURNING_OBJECT_DECTION_P = 0.05;
   public static double TURNING_OBJECT_DECTION_I = 0.0;
   public static double TURNING_OBJECT_DECTION_D = 0.0;

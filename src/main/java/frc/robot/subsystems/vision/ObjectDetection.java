@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,7 +56,8 @@ public class ObjectDetection extends SubsystemBase {
   }
 
   public double getStrafe() {
-    double forwardValue = forwardPID.calculate(pitch, 0) * 0.5;
+    // https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/pidcontroller.html#clamping-controller-output
+    double forwardValue = MathUtil.clamp(forwardPID.calculate(pitch, 0), -0.5, 0.5);
     Translation2d point = new Translation2d(0, forwardValue);
     return point.rotateBy(drive.getRotation().times(-1)).getY();
   }
