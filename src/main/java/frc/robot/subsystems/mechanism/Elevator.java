@@ -31,12 +31,10 @@ public class Elevator extends SubsystemBase {
     rightElevatorMotor.set(power);
     leftElevatorMotor.set(power);
   }
-  ;
 
   public void setElevatorPosition(double position) {
     setElevatorPower(controllerPID.calculate(getElevatorPosition(), position));
   }
-  ;
 
   public double getElevatorPosition() {
     return leftElevatorMotor.getPosition().getValueAsDouble();
