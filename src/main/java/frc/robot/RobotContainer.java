@@ -127,10 +127,10 @@ public class RobotContainer {
     controller
         .b()
         .whileTrue(
-            DriveCommands.joystickDrive(
+            DriveCommands.robotRelativeDrive(
                 drive,
-                () -> m_ObjectDetection.getStrafe(),
-                () -> m_ObjectDetection.getForward(),
+                () -> m_ObjectDetection.getRawForward(),
+                () -> 0,
                 () -> m_ObjectDetection.getRotation()));
     // Lock to 0° when A button is held
     controller

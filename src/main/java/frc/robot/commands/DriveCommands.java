@@ -127,10 +127,7 @@ public class DriveCommands {
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
                   omega * drive.getMaxAngularSpeedRadPerSec());
-          drive.runVelocity(
-              ChassisSpeeds.fromRobotRelativeSpeeds(
-                  speeds,
-                  drive.getRotation()));
+          drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(speeds, drive.getRotation()));
         },
         drive);
   }
