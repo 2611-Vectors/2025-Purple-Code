@@ -32,7 +32,9 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.mechanism.Elevator;
+import frc.robot.subsystems.vision.AprilTag2D;
 import frc.robot.subsystems.vision.ObjectDetection;
+import frc.robot.util.CustomAutoBuilder;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -45,6 +47,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final ObjectDetection m_ObjectDetection;
+  private final AprilTag2D m_AprilTag2D;
   private final Elevator m_Elevator;
 
   // Controller
@@ -90,9 +93,13 @@ public class RobotContainer {
         break;
     }
     m_ObjectDetection = new ObjectDetection(drive, controller);
+    m_AprilTag2D = new AprilTag2D();
     m_Elevator = new Elevator();
 
     m_Elevator.setDefaultCommand(new ElevatorTuning(m_Elevator, operatorController));
+
+    CustomAutoBuilder.chooserBuilder();
+
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -124,12 +131,13 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+    // drive.setDefaultCommand(
+    //     DriveCommands.joystickDrive(
+    //         drive,
+    //         () -> -controller.getLeftY(),
+    //         () -> -controller.getLeftX(),
+    //         () -> -controller.getRightX()));
+
     // Rotate to GamePiece if it sees one
     controller
         .b()
@@ -139,6 +147,25 @@ public class RobotContainer {
                 () -> m_ObjectDetection.getRawForward(),
                 () -> 0,
                 () -> m_ObjectDetection.getRotation()));
+    controller
+        .leftBumper()
+        .whileTrue(
+            DriveCommands.robotRelativeDrive(
+                drive,
+                () -> m_AprilTag2D.getRawForward(4.7),
+                () -> m_AprilTag2D.getRawStrafe(17),
+                () -> 0))
+        .onFalse(DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0));
+    controller
+        .rightBumper()
+        .whileTrue(
+            DriveCommands.robotRelativeDrive(
+                drive,
+                () -> m_AprilTag2D.getRawForward(4.7),
+                () -> m_AprilTag2D.getRawStrafe(-15),
+                () -> 0))
+        .onFalse(DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0));
+
     // Lock to 0° when A button is held
     controller
         .a()
