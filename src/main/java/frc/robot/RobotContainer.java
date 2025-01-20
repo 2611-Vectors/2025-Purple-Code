@@ -34,6 +34,7 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.mechanism.Elevator;
 import frc.robot.subsystems.vision.AprilTag2D;
 import frc.robot.subsystems.vision.ObjectDetection;
+import frc.robot.util.CustomAutoBuilder;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -194,6 +195,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    drive.setPose(new Pose2d(8.5, 6.7, Rotation2d.fromDegrees(180)));
+    return CustomAutoBuilder.getAutonCommand();
   }
 }
