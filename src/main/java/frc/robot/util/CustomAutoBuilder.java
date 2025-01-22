@@ -6,14 +6,19 @@ package frc.robot.util;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -39,6 +44,7 @@ public class CustomAutoBuilder {
   public static LoggedDashboardChooser<Pose2d> startChooser;
   public static LoggedDashboardChooser<Pose2d> scoreOneChooser;
   public static Field2d m_field = new Field2d();
+  public static Translation2d[] vertexs = new Translation2d[6];
 
   public static void chooserBuilder() {
     startChooser = new LoggedDashboardChooser<Pose2d>("Start Position");
@@ -60,50 +66,302 @@ public class CustomAutoBuilder {
 
     scoreOneChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
     SmartDashboard.putData(m_field);
+
+    for (int i = 0; i < reefPointsAngles.length; i++) {
+      vertexs[i] =
+          new Translation2d(
+              REEF_X_BLUE + REEF_SIZE * Math.sin(reefPointsAngles[i]),
+              REEF_Y + REEF_SIZE * Math.cos(reefPointsAngles[i]));
+    }
   }
 
   public static Command autonPath;
+  public static Pose2d startPose;
+  public static PathPlannerPath path;
 
   public static void update() {
     PathConstraints constraints = new PathConstraints(1.0, 0.75, 2 * Math.PI, 4 * Math.PI);
     List<Waypoint> waypoints =
-        PathPlannerPath.waypointsFromPoses(startChooser.get(), scoreOneChooser.get());
+        generateWaypoints(
+            startChooser.get().getTranslation(), scoreOneChooser.get().getTranslation());
+    Waypoint test = new Waypoint(null, null, null);
 
-    // System.out.println("Way point 0");
-    // System.out.println(waypoints.get(0).prevControl());
-    // System.out.println(waypoints.get(0).anchor());
-    // System.out.println(waypoints.get(0).nextControl());
-
-    // System.out.println("Way point 1");
-    // System.out.println(waypoints.get(1).prevControl());
-    // System.out.println(waypoints.get(1).anchor());
-    // System.out.println(waypoints.get(1).nextControl());
-
-    PathPlannerPath path =
+    path =
         new PathPlannerPath(
             waypoints,
             constraints,
-            null, // The ideal starting state, this is only relevant for pre-planned
+            new IdealStartingState(
+                0.0,
+                START_ROTATION), // The ideal starting state, this is only relevant for pre-planned
             // paths, so can
             // be null for on-the-fly paths.
             new GoalEndState(
                 0.0,
-                Rotation2d.fromDegrees(
-                    -90)) // Goal end state. You can set a holonomic rotation here. If
+                scoreOneChooser
+                    .get()
+                    .getRotation()) // Goal end state. You can set a holonomic rotation here. If
             // using a differential drivetrain, the rotation will have no
             // effect.
             );
 
     Pose2d[] posesPath1 = path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
     m_field.getObject("traj").setPoses(posesPath1);
-    // m_field.setRobotPose(posesPath1[posesPath1.length - 1]);
-
-    // SmartDashboard.put("Path", path.getPathPoses().toArray(new
-    // Pose2d[path.getPathPoses().size()]));
+    startPose = path.getPathPoses().get(0);
     autonPath = AutoBuilder.followPath(path);
   }
 
   public static Command getAutonCommand() {
     return autonPath;
+  }
+
+  public static Pose2d getStartPose2d() {
+    if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+      return path.flipPath().getPathPoses().get(0);
+    }
+    return path.getPathPoses().get(0);
+  }
+
+  public static List<Waypoint> generateWaypoints(Translation2d startPoint, Translation2d endPoint) {
+    ArrayList<Waypoint> waypoints = new ArrayList<>();
+    waypoints.add(new Waypoint(null, startPoint, startPoint));
+    waypoints.add(new Waypoint(endPoint, endPoint, null));
+    ArrayList<Integer> intersectedPlanes = getIntersectedPlanes(startPoint, endPoint);
+    if (intersectedPlanes.isEmpty()) {
+      return waypoints;
+    }
+    int planeLength =
+        Math.min(
+            Math.abs(intersectedPlanes.get(0) - intersectedPlanes.get(1)),
+            6 - Math.abs(intersectedPlanes.get(0) - intersectedPlanes.get(1)));
+    Translation2d vertexPoint1, vertexPoint2;
+    double L1, L2, L3, t1, t2;
+    Translation2d[] controlPoints;
+
+    switch (planeLength) {
+      case 1 -> {
+        vertexPoint2 = endPoint;
+        vertexPoint1 =
+            intersectedPlanes.get(0) == 0 && intersectedPlanes.get(1) == 5
+                ? vertexs[0]
+                : vertexs[intersectedPlanes.get(0) + 1];
+
+        L1 = dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY());
+        L2 =
+            dist(
+                vertexPoint1.getX(), vertexPoint1.getY(), vertexPoint2.getX(), vertexPoint2.getY());
+        t1 = L1 / (L1 + L2) * 0.86;
+
+        controlPoints =
+            getControlPoints(startPoint, endPoint, vertexPoint1, vertexPoint2, t1, 0.999);
+      }
+      case 2 -> {
+        vertexPoint1 = vertexs[intersectedPlanes.get(0) + 1];
+        vertexPoint2 = vertexs[intersectedPlanes.get(0) + 2];
+        if (intersectedPlanes.get(0) == 0 && intersectedPlanes.get(1) == 4) {
+          vertexPoint1 = vertexs[5];
+          vertexPoint2 = vertexs[0];
+        } else if (intersectedPlanes.get(0) == 1 && intersectedPlanes.get(1) == 5) {
+          vertexPoint1 = vertexs[0];
+          vertexPoint2 = vertexs[1];
+        }
+
+        if (dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY())
+            > dist(
+                startPoint.getX(), startPoint.getY(), vertexPoint2.getX(), vertexPoint2.getY())) {
+          Translation2d cpy = vertexPoint1;
+          vertexPoint1 = vertexPoint2;
+          vertexPoint2 = cpy;
+        }
+        L1 = dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY());
+        L2 =
+            dist(
+                vertexPoint1.getX(), vertexPoint1.getY(), vertexPoint2.getX(), vertexPoint2.getY());
+        L3 = dist(vertexPoint2.getX(), vertexPoint2.getY(), endPoint.getX(), endPoint.getY());
+
+        t1 = L1 / (L1 + L2 + L3) * 0.86;
+        t2 = 1 - L3 / (L1 + L2 + L3);
+
+        controlPoints = getControlPoints(startPoint, endPoint, vertexPoint1, vertexPoint2, t1, t2);
+      }
+      case 3 -> {
+        int intersectVertex1 = intersectedPlanes.get(0) + 1;
+        int intersectVertex2 = intersectedPlanes.get(0) + 2;
+
+        if (intersectedPlanes.get(0) == 2 && intersectedPlanes.get(1) == 5) {
+          intersectVertex1 = 3;
+          intersectVertex2 = 4;
+        }
+        vertexPoint1 = vertexs[intersectVertex1];
+        vertexPoint2 = vertexs[intersectVertex2];
+
+        if (dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY())
+            > dist(
+                startPoint.getX(), startPoint.getY(), vertexPoint2.getX(), vertexPoint2.getY())) {
+          Translation2d cpy = vertexPoint1;
+          vertexPoint1 = vertexPoint2;
+          vertexPoint2 = cpy;
+        }
+        L1 = dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY());
+        L2 =
+            dist(
+                vertexPoint1.getX(), vertexPoint1.getY(), vertexPoint2.getX(), vertexPoint2.getY());
+        L3 = dist(vertexPoint2.getX(), vertexPoint2.getY(), endPoint.getX(), endPoint.getY());
+
+        t1 = L1 / (L1 + L2 + L3) * 0.86;
+        t2 = 1 - L3 / (L1 + L2 + L3);
+
+        controlPoints = getControlPoints(startPoint, endPoint, vertexPoint1, vertexPoint2, t1, t2);
+      }
+      default -> {
+        controlPoints = new Translation2d[] {new Translation2d(), new Translation2d()};
+      }
+    }
+    waypoints.set(0, new Waypoint(null, startPoint, startPoint.plus(controlPoints[0])));
+    waypoints.set(1, new Waypoint(endPoint.plus(controlPoints[1]), endPoint, null));
+    return waypoints;
+  }
+
+  private static final double[] reefPointsAngles =
+      new double[] {0, Math.PI / 3, 2 * Math.PI / 3, Math.PI, 4 * Math.PI / 3, 5 * Math.PI / 3};
+  private static final double REEF_Y = 4;
+  private static final double REEF_X_BLUE = 4.5;
+  private static final double REEF_SIZE = 1.5;
+
+  // Intersection code
+  public static ArrayList<Integer> getIntersectedPlanes(
+      Translation2d startPoint, Translation2d endPoint) {
+    ArrayList<Integer> intersectedPlanes = new ArrayList<>();
+    for (int i = 0; i < reefPointsAngles.length; i++) {
+      Translation2d vertex1 =
+          new Translation2d(
+              REEF_X_BLUE + REEF_SIZE * Math.sin(reefPointsAngles[i]),
+              REEF_Y + REEF_SIZE * Math.cos(reefPointsAngles[i]));
+      int nextI = (i + 1) % 6;
+      Translation2d vertex2 =
+          new Translation2d(
+              REEF_X_BLUE + REEF_SIZE * Math.sin(reefPointsAngles[nextI]),
+              REEF_Y + REEF_SIZE * Math.cos(reefPointsAngles[nextI]));
+      if (doIntersect(vertex1, vertex2, startPoint, endPoint)) {
+        intersectedPlanes.add(i);
+      }
+    }
+    return intersectedPlanes;
+  }
+
+  // Math stuff
+  public static Translation2d[] getControlPoints(
+      Translation2d startPoint,
+      Translation2d endPoint,
+      Translation2d vertexPoint1,
+      Translation2d vertexPoint2,
+      double t1,
+      double t2) {
+    double t1Minus = (1 - t1);
+    double t1MinusSquared = t1Minus * t1Minus;
+    double t1MinusCubed = t1MinusSquared * t1Minus;
+    double t1Squared = t1 * t1;
+    double t1Cubed = t1Squared * t1;
+
+    double t2Minus = (1 - t2);
+    double t2MinusSquared = t2Minus * t2Minus;
+    double t2MinusCubed = t2MinusSquared * t2Minus;
+    double t2Squared = t2 * t2;
+    double t2Cubed = t2Squared * t2;
+
+    Translation2d controlP2 = new Translation2d(0, 0);
+
+    double num2_1X =
+        3
+            * t1MinusSquared
+            * t1
+            * (-endPoint.getX() * t2Cubed - startPoint.getX() * t2MinusCubed + vertexPoint2.getX());
+    double num2_2X =
+        3
+            * (endPoint.getX() * t1Cubed + startPoint.getX() * t1MinusCubed - vertexPoint1.getX())
+            * t2MinusSquared
+            * t2;
+
+    double den_2_1 = 9 * t1MinusSquared * t1 * t2Minus * t2Squared;
+    double den_2_2 = -9 * t1Minus * t1Squared * t2MinusSquared * t2;
+
+    controlP2 =
+        controlP2.plus(
+            new Translation2d((num2_1X + num2_2X) / (den_2_1 + den_2_2) - endPoint.getX(), 0));
+    double num2_1Y =
+        3
+            * t1MinusSquared
+            * t1
+            * (-endPoint.getY() * t2Cubed - startPoint.getY() * t2MinusCubed + vertexPoint2.getY());
+    double num2_2Y =
+        3
+            * (endPoint.getY() * t1Cubed + startPoint.getY() * t1MinusCubed - vertexPoint1.getY())
+            * t2MinusSquared
+            * t2;
+
+    controlP2 =
+        controlP2.plus(
+            new Translation2d(0, (num2_1Y + num2_2Y) / (den_2_1 + den_2_2) - endPoint.getY()));
+
+    if (t2 == 0.999) {
+      controlP2 = new Translation2d(0, 0);
+    }
+
+    double num1_1X =
+        vertexPoint1.getX() - t1MinusCubed * startPoint.getX() - t1Cubed * endPoint.getX();
+    double num1_2X = -3 * t1Squared * t1Minus * (controlP2.getX() + endPoint.getX());
+
+    double den1 = 3 * t1 * t1MinusSquared;
+    Translation2d controlP1 = new Translation2d(0, 0);
+    controlP1 =
+        controlP1.plus(new Translation2d((num1_1X + num1_2X) / den1 - startPoint.getX(), 0));
+
+    double num1_1Y =
+        vertexPoint1.getY() - t1MinusCubed * startPoint.getY() - t1Cubed * endPoint.getY();
+    double num1_2Y = -3 * t1Squared * t1Minus * (controlP2.getY() + endPoint.getY());
+
+    controlP1 =
+        controlP1.plus(new Translation2d(0, (num1_1Y + num1_2Y) / den1 - startPoint.getY()));
+    return new Translation2d[] {controlP1, controlP2};
+  }
+
+  // The intersection code
+  public static boolean onSegment(Translation2d p, Translation2d q, Translation2d r) {
+    return q.getX() <= Math.max(p.getX(), r.getX())
+        && q.getX() >= Math.min(p.getX(), r.getX())
+        && q.getY() <= Math.max(p.getY(), r.getY())
+        && q.getY() >= Math.min(p.getY(), r.getY());
+  }
+
+  public static int orientationLine(Translation2d p, Translation2d q, Translation2d r) {
+    double val =
+        (q.getY() - p.getY()) * (r.getX() - q.getX())
+            - (q.getX() - p.getX()) * (r.getY() - q.getY());
+    if (val == 0) return 0; // collinear
+    return (val > 0) ? 1 : 2; // 1 -> clockwise, 2 -> counterclockwise
+  }
+
+  public static boolean doIntersect(
+      Translation2d p1, Translation2d q1, Translation2d p2, Translation2d q2) {
+    int o1 = orientationLine(p1, q1, p2);
+    int o2 = orientationLine(p1, q1, q2);
+    int o3 = orientationLine(p2, q2, p1);
+    int o4 = orientationLine(p2, q2, q1);
+
+    // General case
+    if (o1 != o2 && o3 != o4) return true;
+
+    // Special cases
+    if (o1 == 0 && onSegment(p1, p2, q1)) return true;
+    if (o2 == 0 && onSegment(p1, q2, q1)) return true;
+    if (o3 == 0 && onSegment(p2, p1, q2)) return true;
+    if (o4 == 0 && onSegment(p2, q1, q2)) return true;
+
+    return false; // No intersection
+  }
+
+  public static double dist(double x1, double y1, double x2, double y2) {
+    double deltaX = x2 - x1;
+    double deltaY = y2 - y1;
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
   }
 }

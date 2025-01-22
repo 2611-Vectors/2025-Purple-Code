@@ -195,7 +195,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    drive.setPose(new Pose2d(8.5, 6.7, Rotation2d.fromDegrees(180)));
+    drive.setPose(CustomAutoBuilder.getStartPose2d());
     return CustomAutoBuilder.getAutonCommand();
   }
 }
