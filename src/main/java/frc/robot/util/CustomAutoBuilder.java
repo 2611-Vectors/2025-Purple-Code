@@ -76,7 +76,6 @@ public class CustomAutoBuilder {
   }
 
   public static Command autonPath;
-  public static Pose2d startPose;
   public static PathPlannerPath path;
 
   public static void update() {
@@ -84,7 +83,6 @@ public class CustomAutoBuilder {
     List<Waypoint> waypoints =
         generateWaypoints(
             startChooser.get().getTranslation(), scoreOneChooser.get().getTranslation());
-    Waypoint test = new Waypoint(null, null, null);
 
     path =
         new PathPlannerPath(
@@ -106,7 +104,6 @@ public class CustomAutoBuilder {
 
     Pose2d[] posesPath1 = path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
     m_field.getObject("traj").setPoses(posesPath1);
-    startPose = path.getPathPoses().get(0);
     autonPath = AutoBuilder.followPath(path);
   }
 
@@ -118,7 +115,7 @@ public class CustomAutoBuilder {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
       return path.flipPath().getPathPoses().get(0);
     }
-    return path.getPathPoses().get(0);
+    return startChooser.get();
   }
 
   public static List<Waypoint> generateWaypoints(Translation2d startPoint, Translation2d endPoint) {
