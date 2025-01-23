@@ -8,37 +8,20 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.MechanismSimulator;
 import frc.robot.util.PhoenixUtil;
-import frc.robot.util.TunablePIDController;
 import org.littletonrobotics.junction.Logger;
 
-public class Elevator extends SubsystemBase {
-  private TalonFX leftElevatorMotor, rightElevatorMotor;
-  TunablePIDController controllerPID;
+public class Arm extends SubsystemBase {
+  private TalonFX armMotor;
   private final PositionVoltage m_positionVoltage = new PositionVoltage(0).withSlot(0);
-  DigitalInput limitSwitch;
 
-  /** Creates a new Elevator. */
-  public Elevator() {
-    leftElevatorMotor = new TalonFX(Constants.ELEVATOR_LEFT_ID);
-    rightElevatorMotor = new TalonFX(Constants.ELEVATOR_RIGHT_ID);
-    // rightElevatorMotor.setInverted(true);
-
-    limitSwitch = new DigitalInput(0);
-
-    configMotors(leftElevatorMotor, false);
-    configMotors(rightElevatorMotor, true);
-
-    controllerPID =
-        new TunablePIDController(
-            Constants.ELEVATOR_P,
-            Constants.ELEVATOR_I,
-            Constants.ELEVATOR_D,
-            "/Tuning/ObjectionDection/");
+  /** Creates a new Arm. */
+  public Arm() {
+    armMotor = new TalonFX(Constants.ARM_ID);
+    configMotors(armMotor, false);
   }
 
   public void configMotors(TalonFX motor, boolean inverted) {
@@ -66,32 +49,23 @@ public class Elevator extends SubsystemBase {
     motor.setPosition(0);
   }
 
-  public void setElevatorPower(double power) {
-    rightElevatorMotor.set(power);
-    leftElevatorMotor.set(power);
-  }
-
   public void setVoltage(double voltage) {
-    rightElevatorMotor.setVoltage(voltage);
-    leftElevatorMotor.setVoltage(voltage);
+    armMotor.setVoltage(voltage);
   }
 
-  public void setElevatorPosition(double position) {
-    Logger.recordOutput("Elevator/Setpoint", position);
+  public void setArmAngle(double angle) {
+    Logger.recordOutput("Elevator/Setpoint", angle);
     // setElevatorPower(controllerPID.calculate(getElevatorPosition(), position));
-    MechanismSimulator.updateElevator(position);
-    leftElevatorMotor.setControl(m_positionVoltage.withPosition(position));
-    rightElevatorMotor.setControl(m_positionVoltage.withPosition(position));
+    armMotor.setControl(m_positionVoltage.withPosition(angle));
+    MechanismSimulator.updateArm(angle);
   }
 
-  public double getElevatorPosition() {
-    return leftElevatorMotor.getPosition().getValueAsDouble();
+  public double getArmAngle() {
+    return armMotor.getPosition().getValueAsDouble();
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    controllerPID.update();
-    Logger.recordOutput("Elevator/Position", getElevatorPosition());
   }
 }
