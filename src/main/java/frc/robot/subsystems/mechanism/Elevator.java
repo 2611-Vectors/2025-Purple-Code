@@ -9,17 +9,34 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.util.PhoenixUtil;
 import frc.robot.util.TunablePIDController;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class Elevator extends SubsystemBase {
   private TalonFX leftElevatorMotor, rightElevatorMotor;
   TunablePIDController controllerPID;
   private final PositionVoltage m_positionVoltage = new PositionVoltage(0).withSlot(0);
   DigitalInput limitSwitch;
+  Mechanism2d mech = new Mechanism2d(3, 3);
+  MechanismRoot2d root = mech.getRoot("Elevetor", 1.5, 0);
+
+  MechanismLigament2d m_elevator = root.append(new MechanismLigament2d("elevator", 1, 90));
+
+  MechanismLigament2d m_wrist =
+      m_elevator.append(
+          new MechanismLigament2d("wrist", 0.4572, 90, 6, new Color8Bit(Color.kPurple)));
+
+  LoggedNetworkNumber elevatorPosition, wristAngle;
 
   /** Creates a new Elevator. */
   public Elevator() {
@@ -38,6 +55,10 @@ public class Elevator extends SubsystemBase {
             Constants.ELEVATOR_I,
             Constants.ELEVATOR_D,
             "/Tuning/ObjectionDection/");
+
+    elevatorPosition = new LoggedNetworkNumber("/Tuning/ElevatorSim/ElevatorPosition", 0.5);
+    wristAngle = new LoggedNetworkNumber("/Tuning/ElevatorSim/WristAngle", 90);
+    SmartDashboard.putData("Mech2d", mech);
   }
 
   public void configMotors(TalonFX motor, boolean inverted) {
@@ -91,5 +112,8 @@ public class Elevator extends SubsystemBase {
     // This method will be called once per scheduler run
     controllerPID.update();
     Logger.recordOutput("Elevator/Position", getElevatorPosition());
+
+    m_elevator.setLength(elevatorPosition.get());
+    m_wrist.setAngle(wristAngle.get());
   }
 }

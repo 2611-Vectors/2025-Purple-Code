@@ -87,6 +87,10 @@ public class CustomAutoBuilder {
     path =
         new PathPlannerPath(
             waypoints,
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
+            new ArrayList<>(),
             constraints,
             new IdealStartingState(
                 0.0,
@@ -97,10 +101,10 @@ public class CustomAutoBuilder {
                 0.0,
                 scoreOneChooser
                     .get()
-                    .getRotation()) // Goal end state. You can set a holonomic rotation here. If
+                    .getRotation()), // Goal end state. You can set a holonomic rotation here. If
             // using a differential drivetrain, the rotation will have no
             // effect.
-            );
+            false);
 
     Pose2d[] posesPath1 = path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
     m_field.getObject("traj").setPoses(posesPath1);
