@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorTuning;
-import frc.robot.commands.SimpleScoreAuton;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -197,6 +196,7 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     drive.setPose(CustomAutoBuilder.getStartPose2d());
-    return new SimpleScoreAuton();
+    return CustomAutoBuilder.getAutonCommand(drive);
+    // return AutoBuilder.buildAuto("Forward Auto");
   }
 }
