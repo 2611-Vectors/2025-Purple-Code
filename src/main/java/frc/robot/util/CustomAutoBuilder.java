@@ -18,17 +18,23 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.commands.DriveCommands;
+import frc.robot.subsystems.drive.Drive;
 import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /** Add your docs here. */
 public class CustomAutoBuilder {
-  private static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(180); // 180
+  private static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(0); // 180
 
   private static final Pose2d RIGHT_START = new Pose2d(7.9, 5.0, START_ROTATION);
   private static final Pose2d MIDDLE_START = new Pose2d(7.9, 6.15, START_ROTATION);
   private static final Pose2d LEFT_START = new Pose2d(7.9, 7.3, START_ROTATION);
+  private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.38, START_ROTATION);
+  private static final Pose2d MIDDLE_START = new Pose2d(8.5, 1.9, START_ROTATION);
+  private static final Pose2d LEFT_START = new Pose2d(8.5, 0.8, START_ROTATION);
 
   private static final Pose2d BACK_RIGHT_SCORE = new Pose2d(5.2, 2.7, Rotation2d.fromDegrees(120));
   private static final Pose2d BACK_LEFT_SCORE =
@@ -79,7 +85,7 @@ public class CustomAutoBuilder {
   public static PathPlannerPath path;
 
   public static void update() {
-    PathConstraints constraints = new PathConstraints(1.0, 0.75, 2 * Math.PI, 4 * Math.PI);
+    PathConstraints constraints = new PathConstraints(2.0, 1.5, Math.PI, 2 * Math.PI);
     List<Waypoint> waypoints =
         generateWaypoints(
             startChooser.get().getTranslation(), scoreOneChooser.get().getTranslation());
@@ -101,7 +107,10 @@ public class CustomAutoBuilder {
                 0.0,
                 scoreOneChooser
                     .get()
-                    .getRotation()), // Goal end state. You can set a holonomic rotation here. If
+                    .getRotation()
+                    .rotateBy(
+                        Rotation2d.fromDegrees(
+                            180))), // Goal end state. You can set a holonomic rotation here. If
             // using a differential drivetrain, the rotation will have no
             // effect.
             false);
@@ -111,14 +120,17 @@ public class CustomAutoBuilder {
     autonPath = AutoBuilder.followPath(path);
   }
 
-  public static Command getAutonCommand() {
+  public static Command getAutonCommand(Drive drive) {
 
-    return autonPath;
+    return Commands.sequence(
+        autonPath, DriveCommands.joystickDrive(drive, () -> 0, () -> 0, () -> 0.0));
   }
 
   public static Pose2d getStartPose2d() {
     if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
-      return path.flipPath().getPathPoses().get(0);
+      return new Pose2d(
+          path.flipPath().getPathPoses().get(0).getTranslation(),
+          START_ROTATION.rotateBy(Rotation2d.fromDegrees(180)));
     }
     return startChooser.get();
   }

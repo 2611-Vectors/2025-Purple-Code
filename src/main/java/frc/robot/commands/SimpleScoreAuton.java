@@ -7,7 +7,6 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.util.CustomAutoBuilder;
 import frc.robot.util.MechanismSimulator;
 
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
@@ -26,8 +25,9 @@ public class SimpleScoreAuton extends SequentialCommandGroup {
             Commands.sequence(
                 new WaitCommand(4),
                 Commands.runOnce(() -> MechanismSimulator.updateArm(0)),
-                Commands.runOnce(() -> MechanismSimulator.updateElevator(1.65))),
-            CustomAutoBuilder.getAutonCommand()),
+                Commands.runOnce(() -> MechanismSimulator.updateElevator(1.65))) // ,
+            // CustomAutoBuilder.getAutonCommand()
+            ),
         new WaitCommand(2),
         Commands.runOnce(() -> MechanismSimulator.updateArm(-90)));
   }
