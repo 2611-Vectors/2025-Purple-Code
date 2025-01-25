@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.ElevatorTuning;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -31,7 +30,6 @@ import frc.robot.subsystems.drive.GyroIOPigeon2;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.mechanism.Elevator;
 import frc.robot.subsystems.vision.AprilTag2D;
 import frc.robot.subsystems.vision.ObjectDetection;
 import frc.robot.util.CustomAutoBuilder;
@@ -48,7 +46,7 @@ public class RobotContainer {
   private final Drive drive;
   private final ObjectDetection m_ObjectDetection;
   private final AprilTag2D m_AprilTag2D;
-  private final Elevator m_Elevator;
+  //   private final Elevator m_Elevator;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -94,9 +92,9 @@ public class RobotContainer {
     }
     m_ObjectDetection = new ObjectDetection(drive, controller);
     m_AprilTag2D = new AprilTag2D();
-    m_Elevator = new Elevator();
+    // m_Elevator = new Elevator();
 
-    m_Elevator.setDefaultCommand(new ElevatorTuning(m_Elevator, operatorController));
+    // m_Elevator.setDefaultCommand(new ElevatorTuning(m_Elevator, operatorController));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -198,5 +196,6 @@ public class RobotContainer {
     drive.setPose(CustomAutoBuilder.getStartPose2d());
     return CustomAutoBuilder.getAutonCommand(drive);
     // return AutoBuilder.buildAuto("Forward Auto");
+    // return autoChooser.get();
   }
 }
