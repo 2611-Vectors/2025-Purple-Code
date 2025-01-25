@@ -29,9 +29,6 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class CustomAutoBuilder {
   private static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(0); // 180
 
-  private static final Pose2d RIGHT_START = new Pose2d(7.9, 5.0, START_ROTATION);
-  private static final Pose2d MIDDLE_START = new Pose2d(7.9, 6.15, START_ROTATION);
-  private static final Pose2d LEFT_START = new Pose2d(7.9, 7.3, START_ROTATION);
   private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.38, START_ROTATION);
   private static final Pose2d MIDDLE_START = new Pose2d(8.5, 1.9, START_ROTATION);
   private static final Pose2d LEFT_START = new Pose2d(8.5, 0.8, START_ROTATION);
