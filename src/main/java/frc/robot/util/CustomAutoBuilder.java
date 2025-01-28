@@ -82,7 +82,7 @@ public class CustomAutoBuilder {
   public static PathPlannerPath path;
 
   public static void update() {
-    PathConstraints constraints = new PathConstraints(2.0, 1.5, Math.PI, 2 * Math.PI);
+    PathConstraints constraints = new PathConstraints(1.0, 0.75, Math.PI, 2 * Math.PI);
     List<Waypoint> waypoints =
         generateWaypoints(
             startChooser.get().getTranslation(), scoreOneChooser.get().getTranslation());
@@ -236,7 +236,7 @@ public class CustomAutoBuilder {
       new double[] {0, Math.PI / 3, 2 * Math.PI / 3, Math.PI, 4 * Math.PI / 3, 5 * Math.PI / 3};
   private static final double REEF_Y = 4;
   private static final double REEF_X_BLUE = 4.5;
-  private static final double REEF_SIZE = 1.5;
+  private static final double REEF_SIZE = 1.55;
 
   // Intersection code
   public static ArrayList<Integer> getIntersectedPlanes(
