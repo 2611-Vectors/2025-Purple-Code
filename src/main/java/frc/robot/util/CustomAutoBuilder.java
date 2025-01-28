@@ -29,7 +29,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class CustomAutoBuilder {
   private static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(0); // 180
 
-  private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.38, START_ROTATION);
+  private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.2, START_ROTATION);
   private static final Pose2d MIDDLE_START = new Pose2d(8.5, 1.9, START_ROTATION);
   private static final Pose2d LEFT_START = new Pose2d(8.5, 0.8, START_ROTATION);
 
@@ -44,8 +44,11 @@ public class CustomAutoBuilder {
   private static final Pose2d RIGHT_SCORE =
       new Pose2d(6.0, 4.0, new Rotation2d(Math.toRadians(180)));
 
-  public static LoggedDashboardChooser<Pose2d> startChooser;
-  public static LoggedDashboardChooser<Pose2d> scoreOneChooser;
+  private static final Pose2d RIGHT_LOAD_STATION =
+      new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
+  private static final Pose2d LEFT_LOAD_STATION = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
+
+  public static LoggedDashboardChooser<Pose2d> startChooser, scoreOneChooser, loadStationOneChooser, scoreTwoChooser, loadStationTwoChooser, scoreThreeChooser, loadStationThreeChooser;
   public static Field2d m_field = new Field2d();
   public static Translation2d[] vertexs = new Translation2d[6];
 
@@ -58,8 +61,20 @@ public class CustomAutoBuilder {
 
     startChooser.addDefaultOption("Right", RIGHT_START);
 
-    scoreOneChooser = new LoggedDashboardChooser<Pose2d>("Score 1 Position");
+    LoggedDashboardChooser<Pose2d>[] scoreChoosers;
 
+    for (int x = 0; x < 4; x++) {
+      scoreChoosers[x] = new LoggedDashboardChooser<Pose2d>(String.format("Score %s Position", x));
+      scoreChoosers[x].addOption("Back Right", BACK_RIGHT_SCORE);
+      scoreChoosers[x].addOption("Back Left", BACK_LEFT_SCORE);
+      scoreChoosers[x].addOption("Left", LEFT_SCORE);
+      scoreChoosers[x].addOption("Top Left", TOP_LEFT_SCORE);
+      scoreChoosers[x].addOption("Top Right", TOP_RIGHT_SCORE);
+      scoreChoosers[x].addOption("Right", RIGHT_SCORE);
+
+      scoreOneChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
+    }
+    scoreOneChooser = new LoggedDashboardChooser<Pose2d>("Score 1 Position");
     scoreOneChooser.addOption("Back Right", BACK_RIGHT_SCORE);
     scoreOneChooser.addOption("Back Left", BACK_LEFT_SCORE);
     scoreOneChooser.addOption("Left", LEFT_SCORE);
@@ -68,6 +83,16 @@ public class CustomAutoBuilder {
     scoreOneChooser.addOption("Right", RIGHT_SCORE);
 
     scoreOneChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
+
+    loadStationOneChooser = new LoggedDashboardChooser<Pose2d>("Load Station 1");
+
+    loadStationOneChooser.addOption("Right Load Station", RIGHT_LOAD_STATION);
+    loadStationOneChooser.addOption("Left Load Station", LEFT_LOAD_STATION);
+
+    loadStationOneChooser.addDefaultOption("Right Load Station", RIGHT_LOAD_STATION);
+
+
+
     SmartDashboard.putData(m_field);
 
     for (int i = 0; i < reefPointsAngles.length; i++) {
@@ -82,45 +107,46 @@ public class CustomAutoBuilder {
   public static PathPlannerPath path;
 
   public static void update() {
-    PathConstraints constraints = new PathConstraints(1.0, 0.75, Math.PI, 2 * Math.PI);
-    List<Waypoint> waypoints =
-        generateWaypoints(
-            startChooser.get().getTranslation(), scoreOneChooser.get().getTranslation());
-
-    path =
-        new PathPlannerPath(
-            waypoints,
-            new ArrayList<>(),
-            new ArrayList<>(),
-            new ArrayList<>(),
-            new ArrayList<>(),
-            constraints,
-            new IdealStartingState(
-                0.0,
-                START_ROTATION), // The ideal starting state, this is only relevant for pre-planned
-            // paths, so can
-            // be null for on-the-fly paths.
-            new GoalEndState(
-                0.0,
-                scoreOneChooser
-                    .get()
-                    .getRotation()
-                    .rotateBy(
-                        Rotation2d.fromDegrees(
-                            180))), // Goal end state. You can set a holonomic rotation here. If
-            // using a differential drivetrain, the rotation will have no
-            // effect.
-            false);
+    path = getPathFromPoints(startChooser.get().getTranslation(), scoreOneChooser.get());
+    PathPlannerPath path2 =
+        getPathFromPoints(scoreOneChooser.get().getTranslation(), loadStationOneChooser.get());
 
     Pose2d[] posesPath1 = path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
     m_field.getObject("traj").setPoses(posesPath1);
-    autonPath = AutoBuilder.followPath(path);
+    autonPath = Commands.sequence(AutoBuilder.followPath(path), AutoBuilder.followPath(path2));
   }
 
   public static Command getAutonCommand(Drive drive) {
 
     return Commands.sequence(
         autonPath, DriveCommands.joystickDrive(drive, () -> 0, () -> 0, () -> 0.0));
+  }
+
+  public static PathPlannerPath getPathFromPoints(Translation2d point1, Pose2d point2) {
+    PathConstraints constraints = new PathConstraints(1.0, 0.75, Math.PI, 2 * Math.PI);
+    List<Waypoint> waypoints = generateWaypoints(point1, point2.getTranslation());
+
+    return new PathPlannerPath(
+        waypoints,
+        new ArrayList<>(),
+        new ArrayList<>(),
+        new ArrayList<>(),
+        new ArrayList<>(),
+        constraints,
+        new IdealStartingState(
+            0.0, START_ROTATION), // The ideal starting state, this is only relevant for pre-planned
+        // paths, so can
+        // be null for on-the-fly paths.
+        new GoalEndState(
+            0.0,
+            point2
+                .getRotation()
+                .rotateBy(
+                    Rotation2d.fromDegrees(
+                        180))), // Goal end state. You can set a holonomic rotation here. If
+        // using a differential drivetrain, the rotation will have no
+        // effect.
+        false);
   }
 
   public static Pose2d getStartPose2d() {
