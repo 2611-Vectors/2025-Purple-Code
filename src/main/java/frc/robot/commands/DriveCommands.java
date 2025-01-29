@@ -26,6 +26,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
@@ -245,6 +246,8 @@ public class DriveCommands {
                   System.out.println("********** Drive FF Characterization Results **********");
                   System.out.println("\tkS: " + formatter.format(kS));
                   System.out.println("\tkV: " + formatter.format(kV));
+                  SmartDashboard.putString("Calculated kS", formatter.format(kS));
+                  SmartDashboard.putString("Calculated kV", formatter.format(kV));
                 }));
   }
 
@@ -314,6 +317,9 @@ public class DriveCommands {
                               + " meters, "
                               + formatter.format(Units.metersToInches(wheelRadius))
                               + " inches");
+                      SmartDashboard.putString(
+                          "Calculated Wheel Radius (inches)",
+                          formatter.format(Units.metersToInches(wheelRadius)));
                     })));
   }
 

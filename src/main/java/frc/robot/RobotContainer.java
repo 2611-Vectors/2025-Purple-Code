@@ -196,5 +196,6 @@ public class RobotContainer {
     drive.setPose(CustomAutoBuilder.getStartPose2d());
     return CustomAutoBuilder.getAutonCommand(drive);
     // return AutoBuilder.buildAuto("Forward Auto");
+    // return autoChooser.get();
   }
 }
