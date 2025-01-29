@@ -48,12 +48,18 @@ public class CustomAutoBuilder {
       new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
   private static final Pose2d LEFT_LOAD_STATION = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
 
-  public static LoggedDashboardChooser<Pose2d> startChooser, scoreOneChooser, loadStationOneChooser, scoreTwoChooser, loadStationTwoChooser, scoreThreeChooser, loadStationThreeChooser;
+  public static LoggedDashboardChooser<Pose2d>[] scoreChoosers;
+  public static LoggedDashboardChooser<Pose2d>[] loadStationChoosers;
+  public static LoggedDashboardChooser<Pose2d> startChooser;
+
   public static Field2d m_field = new Field2d();
   public static Translation2d[] vertexs = new Translation2d[6];
 
   public static void chooserBuilder() {
     startChooser = new LoggedDashboardChooser<Pose2d>("Start Position");
+    // Change the number after "i < " to add to the path length. Both number MUST be the same.
+    for (int i = 0; i < 3; i++) scoreChoosers[i] = new LoggedDashboardChooser<Pose2d>(String.format("Score Position %s", i));
+    for (int i = 0; i < 3; i++) loadStationChoosers[i] = new LoggedDashboardChooser<Pose2d>(String.format("Load Station %s", i));
 
     startChooser.addOption("Right", RIGHT_START);
     startChooser.addOption("Middle", MIDDLE_START);
@@ -61,37 +67,23 @@ public class CustomAutoBuilder {
 
     startChooser.addDefaultOption("Right", RIGHT_START);
 
-    LoggedDashboardChooser<Pose2d>[] scoreChoosers;
+    for (LoggedDashboardChooser<Pose2d> scoreChooser : scoreChoosers) {
+      scoreChooser.addOption("Back Right", BACK_RIGHT_SCORE);
+      scoreChooser.addOption("Back Left", BACK_LEFT_SCORE);
+      scoreChooser.addOption("Left", LEFT_SCORE);
+      scoreChooser.addOption("Top Left", TOP_LEFT_SCORE);
+      scoreChooser.addOption("Top Right", TOP_RIGHT_SCORE);
+      scoreChooser.addOption("Right", RIGHT_SCORE);
 
-    for (int x = 0; x < 4; x++) {
-      scoreChoosers[x] = new LoggedDashboardChooser<Pose2d>(String.format("Score %s Position", x));
-      scoreChoosers[x].addOption("Back Right", BACK_RIGHT_SCORE);
-      scoreChoosers[x].addOption("Back Left", BACK_LEFT_SCORE);
-      scoreChoosers[x].addOption("Left", LEFT_SCORE);
-      scoreChoosers[x].addOption("Top Left", TOP_LEFT_SCORE);
-      scoreChoosers[x].addOption("Top Right", TOP_RIGHT_SCORE);
-      scoreChoosers[x].addOption("Right", RIGHT_SCORE);
-
-      scoreOneChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
+      scoreChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
     }
-    scoreOneChooser = new LoggedDashboardChooser<Pose2d>("Score 1 Position");
-    scoreOneChooser.addOption("Back Right", BACK_RIGHT_SCORE);
-    scoreOneChooser.addOption("Back Left", BACK_LEFT_SCORE);
-    scoreOneChooser.addOption("Left", LEFT_SCORE);
-    scoreOneChooser.addOption("Top Left", TOP_LEFT_SCORE);
-    scoreOneChooser.addOption("Top Right", TOP_RIGHT_SCORE);
-    scoreOneChooser.addOption("Right", RIGHT_SCORE);
 
-    scoreOneChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
-
-    loadStationOneChooser = new LoggedDashboardChooser<Pose2d>("Load Station 1");
-
-    loadStationOneChooser.addOption("Right Load Station", RIGHT_LOAD_STATION);
-    loadStationOneChooser.addOption("Left Load Station", LEFT_LOAD_STATION);
-
-    loadStationOneChooser.addDefaultOption("Right Load Station", RIGHT_LOAD_STATION);
-
-
+    for (LoggedDashboardChooser<Pose2d> loadStationChooser : loadStationChoosers) {
+      loadStationChooser.addOption("Right Load Station", RIGHT_LOAD_STATION);
+      loadStationChooser.addOption("Left Load Station", LEFT_LOAD_STATION);
+  
+      loadStationChooser.addDefaultOption("Right Load Station", RIGHT_LOAD_STATION);
+    }
 
     SmartDashboard.putData(m_field);
 
@@ -107,13 +99,14 @@ public class CustomAutoBuilder {
   public static PathPlannerPath path;
 
   public static void update() {
-    path = getPathFromPoints(startChooser.get().getTranslation(), scoreOneChooser.get());
-    PathPlannerPath path2 =
-        getPathFromPoints(scoreOneChooser.get().getTranslation(), loadStationOneChooser.get());
+    path = getPathFromPoints(startChooser.get().getTranslation(), scoreChoosers[0].get());
+    m_field.getObject("traj").setPoses(path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]));
+    autonPath = Commands.sequence(AutoBuilder.followPath(path));
 
-    Pose2d[] posesPath1 = path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
-    m_field.getObject("traj").setPoses(posesPath1);
-    autonPath = Commands.sequence(AutoBuilder.followPath(path), AutoBuilder.followPath(path2));
+    for (int i = 0; i < scoreChoosers.length; i++) {
+      path = getPathFromPoints(scoreChoosers[i].get().getTranslation(), loadStationChoosers[i].get());
+      autonPath = Commands.sequence(autonPath, AutoBuilder.followPath(path));
+    }
   }
 
   public static Command getAutonCommand(Drive drive) {
