@@ -4,12 +4,18 @@
 
 package frc.robot.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -19,11 +25,9 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.commands.DriveCommands;
+import frc.robot.commands.AlignReefAprilTag;
 import frc.robot.subsystems.drive.Drive;
-import java.util.ArrayList;
-import java.util.List;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import frc.robot.subsystems.vision.AprilTag2D;
 
 /** Add your docs here. */
 public class CustomAutoBuilder {
@@ -73,8 +77,8 @@ public class CustomAutoBuilder {
     for (int i = 0; i < reefPointsAngles.length; i++) {
       vertexs[i] =
           new Translation2d(
-              REEF_X_BLUE + REEF_SIZE * Math.sin(reefPointsAngles[i]),
-              REEF_Y + REEF_SIZE * Math.cos(reefPointsAngles[i]));
+              REEF_X_BLUE + (REEF_SIZE+0.2) * Math.sin(reefPointsAngles[i]),
+              REEF_Y + (REEF_SIZE+0.2) * Math.cos(reefPointsAngles[i]));
     }
   }
 
@@ -118,9 +122,8 @@ public class CustomAutoBuilder {
   }
 
   public static Command getAutonCommand(Drive drive) {
-
-    return Commands.sequence(
-        autonPath, DriveCommands.joystickDrive(drive, () -> 0, () -> 0, () -> 0.0));
+    AprilTag2D april = new AprilTag2D(drive);
+    return Commands.sequence(autonPath, new AlignReefAprilTag(drive, april, true));
   }
 
   public static Pose2d getStartPose2d() {
@@ -236,7 +239,7 @@ public class CustomAutoBuilder {
       new double[] {0, Math.PI / 3, 2 * Math.PI / 3, Math.PI, 4 * Math.PI / 3, 5 * Math.PI / 3};
   private static final double REEF_Y = 4;
   private static final double REEF_X_BLUE = 4.5;
-  private static final double REEF_SIZE = 1.5;
+  private static final double REEF_SIZE = 1.57;
 
   // Intersection code
   public static ArrayList<Integer> getIntersectedPlanes(
