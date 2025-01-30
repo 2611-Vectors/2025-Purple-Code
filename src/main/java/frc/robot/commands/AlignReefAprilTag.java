@@ -4,7 +4,6 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.AprilTag2D;
@@ -26,8 +25,7 @@ public class AlignReefAprilTag extends Command {
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
@@ -35,16 +33,16 @@ public class AlignReefAprilTag extends Command {
     double strafeSetpoint = isLeft ? 17 : -15;
 
     DriveCommands.robotRelativeDrive(
-        drive,
-        () -> m_AprilTag2D.getRawForward(4.7),
-        () -> m_AprilTag2D.getRawStrafe(strafeSetpoint),
-        () -> 0);
+        drive, -m_AprilTag2D.getRawForward(4.7), -m_AprilTag2D.getRawStrafe(strafeSetpoint), 0);
+    System.out.println("Raw Forward: " + m_AprilTag2D.getRawForward(4.7));
+    System.out.println("Strafe Forward: " + m_AprilTag2D.getRawStrafe(strafeSetpoint));
+    System.out.println("Setpoint: " + strafeSetpoint);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0);
+    DriveCommands.robotRelativeDrive(drive, 0, 0, 0);
   }
 
   // Returns true when the command should end.
