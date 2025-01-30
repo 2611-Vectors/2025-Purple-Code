@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.commands.AlignReefAprilTag;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.drive.Drive;
@@ -130,9 +131,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY() * 0.5,
-            () -> -controller.getLeftX() * 0.5,
-            () -> -controller.getRightX() * 0.51));
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
 
     // Rotate to GamePiece if it sees one
     // controller
@@ -143,24 +144,9 @@ public class RobotContainer {
     //             () -> m_ObjectDetection.getRawForward(),
     //             () -> 0,
     //             () -> m_ObjectDetection.getRotation()));
-    // controller
-    //     .leftBumper()
-    //     .whileTrue(
-    //         DriveCommands.robotRelativeDrive(
-    //             drive,
-    //             () -> m_AprilTag2D.getRawForward(4.7),
-    //             () -> m_AprilTag2D.getRawStrafe(17),
-    //             () -> 0))
-    //     .onFalse(DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0));
-    // controller
-    //     .rightBumper()
-    //     .whileTrue(
-    //         DriveCommands.robotRelativeDrive(
-    //             drive,
-    //             () -> m_AprilTag2D.getRawForward(4.7),
-    //             () -> m_AprilTag2D.getRawStrafe(-15),
-    //             () -> 0))
-    //     .onFalse(DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0));
+    controller.leftBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, true));
+
+    controller.rightBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, false));
 
     // Lock to 0° when A button is held
     controller
