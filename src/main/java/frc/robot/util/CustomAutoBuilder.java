@@ -19,8 +19,9 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.commands.DriveCommands;
+import frc.robot.commands.AlignReefAprilTag;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.vision.AprilTag2D;
 import java.util.ArrayList;
 import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
@@ -29,7 +30,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class CustomAutoBuilder {
   private static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(0); // 180
 
-  private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.2, START_ROTATION);
+  private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.13, START_ROTATION);
   private static final Pose2d MIDDLE_START = new Pose2d(8.5, 1.9, START_ROTATION);
   private static final Pose2d LEFT_START = new Pose2d(8.5, 0.8, START_ROTATION);
 
@@ -106,8 +107,8 @@ public class CustomAutoBuilder {
     for (int i = 0; i < reefPointsAngles.length; i++) {
       vertexs[i] =
           new Translation2d(
-              REEF_X_BLUE + REEF_SIZE * Math.sin(reefPointsAngles[i]),
-              REEF_Y + REEF_SIZE * Math.cos(reefPointsAngles[i]));
+              REEF_X_BLUE + (REEF_SIZE + 0.2) * Math.sin(reefPointsAngles[i]),
+              REEF_Y + (REEF_SIZE + 0.2) * Math.cos(reefPointsAngles[i]));
     }
   }
 
@@ -140,9 +141,8 @@ public class CustomAutoBuilder {
   }
 
   public static Command getAutonCommand(Drive drive) {
-
-    return Commands.sequence(
-        autonPath, DriveCommands.joystickDrive(drive, () -> 0, () -> 0, () -> 0.0));
+    AprilTag2D april = new AprilTag2D();
+    return Commands.sequence(autonPath, new AlignReefAprilTag(drive, april, true));
   }
 
   public static PathPlannerPath getPathFromPoints(Translation2d point1, Pose2d point2) {
@@ -285,7 +285,7 @@ public class CustomAutoBuilder {
       new double[] {0, Math.PI / 3, 2 * Math.PI / 3, Math.PI, 4 * Math.PI / 3, 5 * Math.PI / 3};
   private static final double REEF_Y = 4;
   private static final double REEF_X_BLUE = 4.5;
-  private static final double REEF_SIZE = 1.55;
+  private static final double REEF_SIZE = 1.57;
 
   // Intersection code
   public static ArrayList<Integer> getIntersectedPlanes(
