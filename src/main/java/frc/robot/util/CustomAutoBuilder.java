@@ -146,7 +146,7 @@ public class CustomAutoBuilder {
   }
 
   public static PathPlannerPath getPathFromPoints(Translation2d point1, Pose2d point2) {
-    PathConstraints constraints = new PathConstraints(1.0, 0.75, Math.PI, 2 * Math.PI);
+    PathConstraints constraints = new PathConstraints(1, 0.75, Math.PI, 2 * Math.PI);
     List<Waypoint> waypoints = generateWaypoints(point1, point2.getTranslation());
 
     return new PathPlannerPath(
