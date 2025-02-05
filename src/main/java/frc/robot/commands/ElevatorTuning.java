@@ -27,18 +27,18 @@ public class ElevatorTuning extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (operatorController.y().getAsBoolean()) {
-      m_Elevator.setElevatorPosition(0);
-    } else if (operatorController.b().getAsBoolean()) {
-      m_Elevator.setElevatorPosition(0.25);
-    } else if (operatorController.a().getAsBoolean()) {
-      m_Elevator.setElevatorPosition(0.5);
-    } else if (operatorController.x().getAsBoolean()) {
-      m_Elevator.setElevatorPosition(0.75);
-    }
-    // if (Math.abs(operatorController.getLeftY()) > 0.1) {
-    // m_Elevator.setVoltage(operatorController.getLeftY() * 8);
+    // if (operatorController.y().getAsBoolean()) {
+    //   m_Elevator.setElevatorPosition(0);
+    // } else if (operatorController.b().getAsBoolean()) {
+    //   m_Elevator.setElevatorPosition(0.25);
+    // } else if (operatorController.a().getAsBoolean()) {
+    //   m_Elevator.setElevatorPosition(0.5);
+    // } else if (operatorController.x().getAsBoolean()) {
+    //   m_Elevator.setElevatorPosition(0.75);
     // }
+    if (Math.abs(operatorController.getLeftY()) > 0.1) {
+      m_Elevator.setVoltage(operatorController.getLeftY() * 8);
+    }
   }
 
   // Called once the command ends or is interrupted.

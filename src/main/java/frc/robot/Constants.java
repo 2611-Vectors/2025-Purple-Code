@@ -41,8 +41,8 @@ public final class Constants {
   public static double ELEVATOR_LEVEL_3 = 1500.0;
   public static double ELEVATOR_LEVEL_4 = 2000.0;
 
-  public static int ELEVATOR_LEFT_ID = 31;
-  public static int ELEVATOR_RIGHT_ID = 32;
+  public static int ELEVATOR_LEFT_ID = 40;
+  public static int ELEVATOR_RIGHT_ID = 41;
 
   public static double ELEVATOR_P = 0;
   public static double ELEVATOR_I = 0;
@@ -52,7 +52,7 @@ public final class Constants {
   public static double TURNING_OBJECT_DECTION_I = 0.0;
   public static double TURNING_OBJECT_DECTION_D = 0.0;
 
-  public static double FORWARD_OBJECT_DECTION_P = 0.15;
+  public static double FORWARD_OBJECT_DECTION_P = 0.05;
   public static double FORWARD_OBJECT_DECTION_I = 0.0;
   public static double FORWARD_OBJECT_DECTION_D = 0.0;
 

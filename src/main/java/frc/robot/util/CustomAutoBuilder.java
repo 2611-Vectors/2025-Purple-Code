@@ -39,7 +39,7 @@ public class CustomAutoBuilder {
       new Pose2d(3.7, 2.7, new Rotation2d(Math.toRadians(60)));
   private static final Pose2d LEFT_SCORE = new Pose2d(3.0, 4.0, new Rotation2d(Math.toRadians(0)));
   private static final Pose2d TOP_LEFT_SCORE =
-      new Pose2d(3.8, 5.3, new Rotation2d(Math.toRadians(-60)));
+      new Pose2d(3.5, 5.8, new Rotation2d(Math.toRadians(-60)));
   private static final Pose2d TOP_RIGHT_SCORE =
       new Pose2d(5.3, 5.3, new Rotation2d(Math.toRadians(-120)));
   private static final Pose2d RIGHT_SCORE =
@@ -56,7 +56,7 @@ public class CustomAutoBuilder {
 
   public static Field2d m_field = new Field2d();
   public static Translation2d[] vertexs = new Translation2d[6];
-  public static int NUMBER_OF_CHOOSERS = 3;
+  public static int NUMBER_OF_CHOOSERS = 1;
 
   @SuppressWarnings("unchecked")
   public static void chooserBuilder() {
@@ -140,8 +140,7 @@ public class CustomAutoBuilder {
     m_field.getObject("traj").setPoses(paths.get(displayChooser.get()));
   }
 
-  public static Command getAutonCommand(Drive drive) {
-    AprilTag2D april = new AprilTag2D();
+  public static Command getAutonCommand(Drive drive, AprilTag2D april) {
     return Commands.sequence(autonPath, new AlignReefAprilTag(drive, april, true));
   }
 
