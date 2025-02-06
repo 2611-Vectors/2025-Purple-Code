@@ -4,6 +4,8 @@
 
 package frc.robot.util;
 
+import static frc.robot.Constants.AutonConstants.*;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.IdealStartingState;
@@ -28,27 +30,6 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /** Add your docs here. */
 public class CustomAutoBuilder {
-  private static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(0); // 180
-
-  private static final Pose2d RIGHT_START = new Pose2d(8.0, 5.13, START_ROTATION);
-  private static final Pose2d MIDDLE_START = new Pose2d(8.5, 1.9, START_ROTATION);
-  private static final Pose2d LEFT_START = new Pose2d(8.5, 0.8, START_ROTATION);
-
-  private static final Pose2d BACK_RIGHT_SCORE = new Pose2d(5.2, 2.7, Rotation2d.fromDegrees(120));
-  private static final Pose2d BACK_LEFT_SCORE =
-      new Pose2d(3.7, 2.7, new Rotation2d(Math.toRadians(60)));
-  private static final Pose2d LEFT_SCORE = new Pose2d(3.0, 4.0, new Rotation2d(Math.toRadians(0)));
-  private static final Pose2d TOP_LEFT_SCORE =
-      new Pose2d(3.5, 5.8, new Rotation2d(Math.toRadians(-60)));
-  private static final Pose2d TOP_RIGHT_SCORE =
-      new Pose2d(5.3, 5.3, new Rotation2d(Math.toRadians(-120)));
-  private static final Pose2d RIGHT_SCORE =
-      new Pose2d(6.0, 4.0, new Rotation2d(Math.toRadians(180)));
-
-  private static final Pose2d RIGHT_LOAD_STATION =
-      new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
-  private static final Pose2d LEFT_LOAD_STATION = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
-
   public static LoggedDashboardChooser<Pose2d>[] scoreChoosers;
   public static LoggedDashboardChooser<Pose2d>[] loadStationChoosers;
   public static LoggedDashboardChooser<Pose2d> startChooser;
@@ -56,7 +37,7 @@ public class CustomAutoBuilder {
 
   public static Field2d m_field = new Field2d();
   public static Translation2d[] vertexs = new Translation2d[6];
-  public static int NUMBER_OF_CHOOSERS = 1;
+  public static int NUMBER_OF_CHOOSERS = 2;
 
   @SuppressWarnings("unchecked")
   public static void chooserBuilder() {
@@ -64,7 +45,7 @@ public class CustomAutoBuilder {
     displayChooser = new LoggedDashboardChooser<Integer>("Path Display");
 
     scoreChoosers = new LoggedDashboardChooser[NUMBER_OF_CHOOSERS];
-    loadStationChoosers = new LoggedDashboardChooser[NUMBER_OF_CHOOSERS];
+    loadStationChoosers = new LoggedDashboardChooser[NUMBER_OF_CHOOSERS - 1];
 
     // Change the number after "i < " to add to the path length. Both number MUST be
     // the same.
@@ -107,8 +88,8 @@ public class CustomAutoBuilder {
     for (int i = 0; i < reefPointsAngles.length; i++) {
       vertexs[i] =
           new Translation2d(
-              REEF_X_BLUE + (REEF_SIZE + 0.2) * Math.sin(reefPointsAngles[i]),
-              REEF_Y + (REEF_SIZE + 0.2) * Math.cos(reefPointsAngles[i]));
+              REEF_X_BLUE + (REEF_SIZE + 0.1) * Math.sin(reefPointsAngles[i]),
+              REEF_Y + (REEF_SIZE + 0.1) * Math.cos(reefPointsAngles[i]));
     }
   }
 
@@ -181,102 +162,88 @@ public class CustomAutoBuilder {
   }
 
   public static List<Waypoint> generateWaypoints(Translation2d startPoint, Translation2d endPoint) {
-    ArrayList<Waypoint> waypoints = new ArrayList<>();
-    waypoints.add(new Waypoint(null, startPoint, startPoint));
-    waypoints.add(new Waypoint(endPoint, endPoint, null));
-    ArrayList<Integer> intersectedPlanes = getIntersectedPlanes(startPoint, endPoint);
-    if (intersectedPlanes.isEmpty()) {
-      return waypoints;
-    }
-    int planeLength =
-        Math.min(
-            Math.abs(intersectedPlanes.get(0) - intersectedPlanes.get(1)),
-            6 - Math.abs(intersectedPlanes.get(0) - intersectedPlanes.get(1)));
-    Translation2d vertexPoint1, vertexPoint2;
-    double L1, L2, L3, t1, t2;
-    Translation2d[] controlPoints;
+    List<Waypoint> waypoints =
+        new ArrayList<>(
+            List.of(
+                new Waypoint(null, startPoint, startPoint),
+                new Waypoint(endPoint, endPoint, null)));
 
+    List<Integer> intersectedPlanes = getIntersectedPlanes(startPoint, endPoint);
+    if (intersectedPlanes.isEmpty()) return waypoints;
+
+    int planeDiff = Math.abs(intersectedPlanes.get(0) - intersectedPlanes.get(1));
+    int planeLength = Math.min(planeDiff, 6 - planeDiff);
+
+    Translation2d vertexPoint1, vertexPoint2;
+    Translation2d[] controlPoints;
+    boolean intersect1 = false;
     switch (planeLength) {
       case 1 -> {
-        vertexPoint2 = endPoint;
         vertexPoint1 =
-            intersectedPlanes.get(0) == 0 && intersectedPlanes.get(1) == 5
+            (intersectedPlanes.get(0) == 0 && intersectedPlanes.get(1) == 5)
                 ? vertexs[0]
                 : vertexs[intersectedPlanes.get(0) + 1];
-
-        L1 = dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY());
-        L2 =
-            dist(
-                vertexPoint1.getX(), vertexPoint1.getY(), vertexPoint2.getX(), vertexPoint2.getY());
-        t1 = L1 / (L1 + L2) * 0.86;
-
-        controlPoints =
-            getControlPoints(startPoint, endPoint, vertexPoint1, vertexPoint2, t1, 0.999);
+        vertexPoint2 = endPoint;
+        intersect1 = true;
       }
-      case 2 -> {
-        vertexPoint1 = vertexs[intersectedPlanes.get(0) + 1];
-        vertexPoint2 = vertexs[intersectedPlanes.get(0) + 2];
-        if (intersectedPlanes.get(0) == 0 && intersectedPlanes.get(1) == 4) {
-          vertexPoint1 = vertexs[5];
-          vertexPoint2 = vertexs[0];
-        } else if (intersectedPlanes.get(0) == 1 && intersectedPlanes.get(1) == 5) {
-          vertexPoint1 = vertexs[0];
-          vertexPoint2 = vertexs[1];
+      case 2, 3 -> {
+        int v1 = intersectedPlanes.get(0) + 1;
+        int v2 = intersectedPlanes.get(0) + 2;
+
+        if ((intersectedPlanes.get(0) == 0 && intersectedPlanes.get(1) == 4)
+            || (intersectedPlanes.get(0) == 1 && intersectedPlanes.get(1) == 5)) {
+          v1 = 0;
+          v2 = 1;
+        } else if (intersectedPlanes.get(0) == 2 && intersectedPlanes.get(1) == 5) {
+          v1 = 3;
+          v2 = 4;
+        } else if ((intersectedPlanes.get(0) == 1 && intersectedPlanes.get(1) == 4)) {
+          v1 = 3;
+          v2 = 4;
         }
 
-        if (dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY())
-            > dist(
-                startPoint.getX(), startPoint.getY(), vertexPoint2.getX(), vertexPoint2.getY())) {
-          Translation2d cpy = vertexPoint1;
+        vertexPoint1 = vertexs[v1];
+        vertexPoint2 = vertexs[v2];
+        if (startPoint.getDistance(vertexPoint1) > startPoint.getDistance(vertexPoint2)) {
+          Translation2d temp = vertexPoint1;
           vertexPoint1 = vertexPoint2;
-          vertexPoint2 = cpy;
+          vertexPoint2 = temp;
         }
-        L1 = dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY());
-        L2 =
-            dist(
-                vertexPoint1.getX(), vertexPoint1.getY(), vertexPoint2.getX(), vertexPoint2.getY());
-        L3 = dist(vertexPoint2.getX(), vertexPoint2.getY(), endPoint.getX(), endPoint.getY());
-
-        t1 = L1 / (L1 + L2 + L3) * 0.86;
-        t2 = 1 - L3 / (L1 + L2 + L3);
-
-        controlPoints = getControlPoints(startPoint, endPoint, vertexPoint1, vertexPoint2, t1, t2);
-      }
-      case 3 -> {
-        int intersectVertex1 = intersectedPlanes.get(0) + 1;
-        int intersectVertex2 = intersectedPlanes.get(0) + 2;
-
-        if (intersectedPlanes.get(0) == 2 && intersectedPlanes.get(1) == 5) {
-          intersectVertex1 = 3;
-          intersectVertex2 = 4;
-        }
-        vertexPoint1 = vertexs[intersectVertex1];
-        vertexPoint2 = vertexs[intersectVertex2];
-
-        if (dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY())
-            > dist(
-                startPoint.getX(), startPoint.getY(), vertexPoint2.getX(), vertexPoint2.getY())) {
-          Translation2d cpy = vertexPoint1;
-          vertexPoint1 = vertexPoint2;
-          vertexPoint2 = cpy;
-        }
-        L1 = dist(startPoint.getX(), startPoint.getY(), vertexPoint1.getX(), vertexPoint1.getY());
-        L2 =
-            dist(
-                vertexPoint1.getX(), vertexPoint1.getY(), vertexPoint2.getX(), vertexPoint2.getY());
-        L3 = dist(vertexPoint2.getX(), vertexPoint2.getY(), endPoint.getX(), endPoint.getY());
-
-        t1 = L1 / (L1 + L2 + L3) * 0.86;
-        t2 = 1 - L3 / (L1 + L2 + L3);
-
-        controlPoints = getControlPoints(startPoint, endPoint, vertexPoint1, vertexPoint2, t1, t2);
       }
       default -> {
-        controlPoints = new Translation2d[] {new Translation2d(), new Translation2d()};
+        return waypoints;
       }
     }
+
+    double[][] points = {
+      {
+        startPoint.getX() / 8.75, startPoint.getY() / 8.0,
+        endPoint.getX() / 8.75, endPoint.getY() / 8.0,
+        vertexPoint1.getX() / 8.75, vertexPoint1.getY() / 8.0,
+        vertexPoint2.getX() / 8.75, vertexPoint2.getY() / 8.0
+      }
+    };
+
+    double[][] h1 =
+        ModelWeights.applyReLU(
+            ModelWeights.matrixAdd(
+                ModelWeights.matrixMultiply(points, ModelWeights.weights1), ModelWeights.biases1));
+
+    double[][] output =
+        ModelWeights.matrixAdd(
+            ModelWeights.matrixMultiply(h1, ModelWeights.weights2), ModelWeights.biases2);
+
+    controlPoints =
+        getControlPoints(
+            startPoint,
+            endPoint,
+            vertexPoint1,
+            vertexPoint2,
+            Math.max(output[0][0], 0.01),
+            intersect1 ? 0.999 : Math.min(output[0][1], 0.99));
     waypoints.set(0, new Waypoint(null, startPoint, startPoint.plus(controlPoints[0])));
     waypoints.set(1, new Waypoint(endPoint.plus(controlPoints[1]), endPoint, null));
+
     return waypoints;
   }
 
@@ -416,11 +383,5 @@ public class CustomAutoBuilder {
     if (o4 == 0 && onSegment(p2, q1, q2)) return true;
 
     return false; // No intersection
-  }
-
-  public static double dist(double x1, double y1, double x2, double y2) {
-    double deltaX = x2 - x1;
-    double deltaY = y2 - y1;
-    return Math.sqrt(deltaX * deltaX + deltaY * deltaY);
   }
 }

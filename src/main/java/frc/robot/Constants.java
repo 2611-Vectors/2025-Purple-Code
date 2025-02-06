@@ -13,6 +13,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -57,4 +59,27 @@ public final class Constants {
   public static double FORWARD_OBJECT_DECTION_D = 0.0;
 
   public static int ARM_ID = 33;
+
+  public static class AutonConstants {
+    public static final Rotation2d START_ROTATION = Rotation2d.fromDegrees(0); // 180
+
+    public static final Pose2d RIGHT_START = new Pose2d(8.0, 5.13, START_ROTATION);
+    public static final Pose2d MIDDLE_START = new Pose2d(8.5, 1.9, START_ROTATION);
+    public static final Pose2d LEFT_START = new Pose2d(8.5, 0.8, START_ROTATION);
+
+    public static final Pose2d BACK_RIGHT_SCORE = new Pose2d(5.2, 2.7, Rotation2d.fromDegrees(120));
+    public static final Pose2d BACK_LEFT_SCORE =
+        new Pose2d(3.7, 2.7, new Rotation2d(Math.toRadians(60)));
+    public static final Pose2d LEFT_SCORE = new Pose2d(3.0, 4.0, new Rotation2d(Math.toRadians(0)));
+    public static final Pose2d TOP_LEFT_SCORE =
+        new Pose2d(3.8, 5.3, new Rotation2d(Math.toRadians(-60)));
+    public static final Pose2d TOP_RIGHT_SCORE =
+        new Pose2d(5.3, 5.3, new Rotation2d(Math.toRadians(-120)));
+    public static final Pose2d RIGHT_SCORE =
+        new Pose2d(6.0, 4.0, new Rotation2d(Math.toRadians(180)));
+
+    public static final Pose2d RIGHT_LOAD_STATION =
+        new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
+    public static final Pose2d LEFT_LOAD_STATION = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
+  }
 }
