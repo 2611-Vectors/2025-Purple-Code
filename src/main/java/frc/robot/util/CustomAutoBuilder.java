@@ -37,7 +37,7 @@ public class CustomAutoBuilder {
 
   public static Field2d m_field = new Field2d();
   public static Translation2d[] vertexs = new Translation2d[6];
-  public static int NUMBER_OF_CHOOSERS = 2;
+  public static int NUMBER_OF_CHOOSERS = 3;
 
   @SuppressWarnings("unchecked")
   public static void chooserBuilder() {
@@ -126,7 +126,8 @@ public class CustomAutoBuilder {
   }
 
   public static PathPlannerPath getPathFromPoints(Translation2d point1, Pose2d point2) {
-    PathConstraints constraints = new PathConstraints(1, 0.75, Math.PI, 2 * Math.PI);
+    PathConstraints constraints =
+        new PathConstraints(MAX_VELOCITY, MAX_ACCELERATION, Math.PI, 2 * Math.PI);
     List<Waypoint> waypoints = generateWaypoints(point1, point2.getTranslation());
 
     return new PathPlannerPath(
@@ -160,7 +161,15 @@ public class CustomAutoBuilder {
     }
     return startChooser.get();
   }
-
+  /**
+   * Generates a list of waypoints for a path between a given start and end point. The method
+   * considers intersected planes and uses a neural network model to determine optimal control
+   * points for a smooth path.
+   *
+   * @param startPoint The starting position as a {@link Translation2d} object.
+   * @param endPoint The ending position as a {@link Translation2d} object.
+   * @return A {@link List} of {@link Waypoint} objects representing the calculated path.
+   */
   public static List<Waypoint> generateWaypoints(Translation2d startPoint, Translation2d endPoint) {
     List<Waypoint> waypoints =
         new ArrayList<>(
@@ -253,7 +262,13 @@ public class CustomAutoBuilder {
   private static final double REEF_X_BLUE = 4.5;
   private static final double REEF_SIZE = 1.57;
 
-  // Intersection code
+  /**
+   * Determines which reef edges a given line segment intersects.
+   *
+   * @param startPoint The start point of the segment.
+   * @param endPoint The end point of the segment.
+   * @return A list of indices representing intersected reef edges.
+   */
   public static ArrayList<Integer> getIntersectedPlanes(
       Translation2d startPoint, Translation2d endPoint) {
     ArrayList<Integer> intersectedPlanes = new ArrayList<>();
@@ -274,7 +289,17 @@ public class CustomAutoBuilder {
     return intersectedPlanes;
   }
 
-  // Math stuff
+  /**
+   * Computes control points for a cubic Bézier curve.
+   *
+   * @param startPoint The start point.
+   * @param endPoint The end point.
+   * @param vertex1 The first vertex point.
+   * @param vertex2 The second vertex point.
+   * @param t1 Curve parameter for the first control point.
+   * @param t2 Curve parameter for the second control point.
+   * @return An array containing two control points.
+   */
   public static Translation2d[] getControlPoints(
       Translation2d startPoint,
       Translation2d endPoint,

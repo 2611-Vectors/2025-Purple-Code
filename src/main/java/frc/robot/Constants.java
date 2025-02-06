@@ -81,5 +81,8 @@ public final class Constants {
     public static final Pose2d RIGHT_LOAD_STATION =
         new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
     public static final Pose2d LEFT_LOAD_STATION = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
+
+    public static final double MAX_VELOCITY = 5;
+    public static final double MAX_ACCELERATION = 4;
   }
 }
