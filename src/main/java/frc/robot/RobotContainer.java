@@ -22,10 +22,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.*;
 import frc.robot.commands.AlignReefAprilTag;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorTuning;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.dashboard.Field;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -34,6 +36,10 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.mechanism.Elevator;
 import frc.robot.subsystems.vision.AprilTag2D;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.CustomAutoBuilder;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -49,6 +55,8 @@ public class RobotContainer {
   // private final ObjectDetection m_ObjectDetection;
   private final AprilTag2D m_AprilTag2D;
   private final Elevator m_Elevator;
+  private final Vision m_Vision;
+  private final Field m_Field;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -68,6 +76,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+        m_Vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVision(
+                VisionConstants.reefCamName, 
+                VisionConstants.robotToReefCam));
         break;
 
       case SIM:
@@ -79,6 +92,12 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+        m_Vision = new Vision(
+            drive::addVisionMeasurement,
+            new VisionIOPhotonVisionSim(
+                VisionConstants.reefCamName, 
+                VisionConstants.robotToReefCam, 
+                drive::getPose));
         break;
 
       default:
@@ -90,9 +109,11 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        m_Vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         break;
     }
     // m_ObjectDetection = new ObjectDetection(drive, controller);
+    m_Field = new Field(drive);
     m_AprilTag2D = new AprilTag2D();
     m_Elevator = new Elevator();
 
@@ -134,7 +155,7 @@ public class RobotContainer {
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
-            () -> -controller.getRightX() * 0.5));
+            () -> -controller.getRightX()));
 
     // Rotate to GamePiece if it sees one
     // controller
@@ -146,32 +167,25 @@ public class RobotContainer {
     // () -> 0,
     // () -> m_ObjectDetection.getRotation()));
     controller.leftBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, true));
-
     controller.rightBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, false));
 
     // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+    controller.a().whileTrue(
+        DriveCommands.joystickDriveAtAngle(
+            drive,
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
-    controller
-        .back()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
+    controller.back().onTrue(
+        Commands.runOnce(
+            () -> drive.setPose(
+                new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+            drive).ignoringDisable(true));
   }
 
   /**

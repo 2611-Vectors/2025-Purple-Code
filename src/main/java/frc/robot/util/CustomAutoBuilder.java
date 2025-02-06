@@ -59,28 +59,28 @@ public class CustomAutoBuilder {
       displayChooser.addOption("Path " + i, i);
     }
     displayChooser.addDefaultOption("Path 0", 0);
-    startChooser.addOption("Right", RIGHT_START);
-    startChooser.addOption("Middle", MIDDLE_START);
-    startChooser.addOption("Left", LEFT_START);
+    startChooser.addOption("Left", START_LEFT);
+    startChooser.addOption("Center", START_CENTER);
+    startChooser.addOption("Right", START_RIGHT);
 
-    startChooser.addDefaultOption("Right", RIGHT_START);
+    startChooser.addDefaultOption("Right", START_RIGHT);
 
     for (LoggedDashboardChooser<Pose2d> scoreChooser : scoreChoosers) {
-      scoreChooser.addOption("Back Right", BACK_RIGHT_SCORE);
-      scoreChooser.addOption("Back Left", BACK_LEFT_SCORE);
-      scoreChooser.addOption("Left", LEFT_SCORE);
-      scoreChooser.addOption("Top Left", TOP_LEFT_SCORE);
-      scoreChooser.addOption("Top Right", TOP_RIGHT_SCORE);
-      scoreChooser.addOption("Right", RIGHT_SCORE);
+      scoreChooser.addOption("AB", AB);
+      scoreChooser.addOption("CD", CD);
+      scoreChooser.addOption("EF", EF);
+      scoreChooser.addOption("GH", GH);
+      scoreChooser.addOption("IJ", IJ);
+      scoreChooser.addOption("KL", KL);
 
-      scoreChooser.addDefaultOption("Back Right", BACK_RIGHT_SCORE);
+      scoreChooser.addDefaultOption("IJ", IJ);
     }
 
     for (LoggedDashboardChooser<Pose2d> loadStationChooser : loadStationChoosers) {
-      loadStationChooser.addOption("Right Load Station", RIGHT_LOAD_STATION);
-      loadStationChooser.addOption("Left Load Station", LEFT_LOAD_STATION);
+      loadStationChooser.addOption("R1", R1);
+      loadStationChooser.addOption("R0", R0);
 
-      loadStationChooser.addDefaultOption("Right Load Station", RIGHT_LOAD_STATION);
+      loadStationChooser.addDefaultOption("R1", R1);
     }
 
     SmartDashboard.putData(m_field);
@@ -116,7 +116,15 @@ public class CustomAutoBuilder {
 
       autonPath =
           Commands.sequence(
-              autonPath, AutoBuilder.followPath(path1), AutoBuilder.followPath(path2));
+              autonPath, 
+              Commands.runOnce(() -> m_field.getObject("traj").setPoses(
+                path1.getPathPoses().toArray(new Pose2d[path1.getPathPoses().size()])
+              )),
+              AutoBuilder.followPath(path1), 
+              Commands.runOnce(() -> m_field.getObject("traj").setPoses(
+                path2.getPathPoses().toArray(new Pose2d[path2.getPathPoses().size()])
+              )),
+              AutoBuilder.followPath(path2));
     }
     m_field.getObject("traj").setPoses(paths.get(displayChooser.get()));
   }
