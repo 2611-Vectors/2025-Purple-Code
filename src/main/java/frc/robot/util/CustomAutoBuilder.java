@@ -129,6 +129,10 @@ public class CustomAutoBuilder {
     m_field.getObject("traj").setPoses(paths.get(displayChooser.get()));
   }
 
+  public static Command getAutonCommand(Drive drive) {
+    return Commands.sequence(autonPath);
+  }
+
   public static Command getAutonCommand(Drive drive, AprilTag2D april) {
     return Commands.sequence(autonPath, new AlignReefAprilTag(drive, april, true));
   }

@@ -53,7 +53,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   // private final ObjectDetection m_ObjectDetection;
-  private final AprilTag2D m_AprilTag2D;
+//   private final AprilTag2D m_AprilTag2D;
   private final Elevator m_Elevator;
   private final Vision m_Vision;
   private final Field m_Field;
@@ -114,7 +114,7 @@ public class RobotContainer {
     }
     // m_ObjectDetection = new ObjectDetection(drive, controller);
     m_Field = new Field(drive);
-    m_AprilTag2D = new AprilTag2D();
+    // m_AprilTag2D = new AprilTag2D();
     m_Elevator = new Elevator();
 
     m_Elevator.setDefaultCommand(new ElevatorTuning(m_Elevator, operatorController));
@@ -166,8 +166,8 @@ public class RobotContainer {
     // () -> m_ObjectDetection.getRawForward(),
     // () -> 0,
     // () -> m_ObjectDetection.getRotation()));
-    controller.leftBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, true));
-    controller.rightBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, false));
+    // controller.leftBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, true));
+    // controller.rightBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, false));
 
     // Lock to 0° when A button is held
     controller.a().whileTrue(
@@ -195,7 +195,8 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     drive.setPose(CustomAutoBuilder.getStartPose2d());
-    return CustomAutoBuilder.getAutonCommand(drive, m_AprilTag2D);
+    // return CustomAutoBuilder.getAutonCommand(drive, m_AprilTag2D);
+    return CustomAutoBuilder.getAutonCommand(drive);
     // return AutoBuilder.buildAuto("Forward Auto");
     // return autoChooser.get();
   }
