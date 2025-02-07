@@ -125,14 +125,24 @@ public class CustomAutoBuilder {
 
       autonPath =
           Commands.sequence(
-              autonPath, 
-              Commands.runOnce(() -> m_field.getObject("traj").setPoses(
-                path1.getPathPoses().toArray(new Pose2d[path1.getPathPoses().size()])
-              )),
-              AutoBuilder.followPath(path1), 
-              Commands.runOnce(() -> m_field.getObject("traj").setPoses(
-                path2.getPathPoses().toArray(new Pose2d[path2.getPathPoses().size()])
-              )),
+              autonPath,
+              Commands.runOnce(
+                  () ->
+                      m_field
+                          .getObject("traj")
+                          .setPoses(
+                              path1
+                                  .getPathPoses()
+                                  .toArray(new Pose2d[path1.getPathPoses().size()]))),
+              AutoBuilder.followPath(path1),
+              Commands.runOnce(
+                  () ->
+                      m_field
+                          .getObject("traj")
+                          .setPoses(
+                              path2
+                                  .getPathPoses()
+                                  .toArray(new Pose2d[path2.getPathPoses().size()]))),
               AutoBuilder.followPath(path2));
     }
     m_field.getObject("traj").setPoses(paths.get(displayChooser.get()));

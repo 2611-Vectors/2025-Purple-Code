@@ -18,7 +18,8 @@ public class Field extends SubsystemBase {
     m_field = CustomAutoBuilder.m_field;
   }
 
-  @Override public void periodic() {
+  @Override
+  public void periodic() {
     // This method will be called once per scheduler run
     m_field.setRobotPose(m_drive.getPose());
   }
