@@ -102,6 +102,15 @@ public class CustomAutoBuilder {
     startPath = getPathFromPoints(startChooser.get().getTranslation(), scoreChoosers[0].get());
 
     paths.add(startPath.getPathPoses().toArray(new Pose2d[startPath.getPathPoses().size()]));
+    // This is really cursed dont do this
+    Pose2d[] duplicatedArray = new Pose2d[paths.get(0).length * 2];
+
+    for (int i = 0; i < paths.get(0).length; i++) {
+      duplicatedArray[i] = paths.get(0)[i];
+      duplicatedArray[paths.get(0).length * 2 - 1 - i] = paths.get(0)[i];
+    }
+
+    paths.set(0, duplicatedArray);
     autonPath = AutoBuilder.followPath(startPath);
 
     for (int i = 0; i < scoreChoosers.length - 1; i++) {
