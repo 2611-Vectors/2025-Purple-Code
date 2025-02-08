@@ -106,7 +106,7 @@ public class CustomAutoBuilder {
   }
 
   public static Command trajectoryDisplay(PathPlannerPath path) {
-    return Commands.runOnce(() -> m_field.getObject("traj").setPoses(pathToPose(path)));
+    return Commands.runOnce(() -> trajectoryDisplay(pathToPose(path)));
   }
 
   public static Pose2d[] pathToPose(PathPlannerPath path) {
