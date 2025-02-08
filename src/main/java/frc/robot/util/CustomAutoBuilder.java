@@ -25,6 +25,7 @@ import frc.robot.commands.AlignReefAprilTag;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.vision.AprilTag2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -97,21 +98,27 @@ public class CustomAutoBuilder {
   public static PathPlannerPath startPath;
   // public static ArrayList<Pose2d[]> paths = new ArrayList<>();
 
+  public static void trajectoryDisplay(Pose2d[] path) {
+    // This is really cursed dont do this
+    Pose2d[] result = Arrays.copyOf(path, path.length * 2);
+    for (int i = 0; i < path.length; i++) result[i + path.length] = path[path.length - i - 1];
+    m_field.getObject("traj").setPoses(result);
+  }
+
+  public static Command trajectoryDisplay(PathPlannerPath path) {
+    return Commands.runOnce(() -> m_field.getObject("traj").setPoses(pathToPose(path)));
+  }
+
+  public static Pose2d[] pathToPose(PathPlannerPath path) {
+    return path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
+  }
+
   public static void update() {
     ArrayList<Pose2d[]> paths = new ArrayList<>();
     startPath = getPathFromPoints(startChooser.get().getTranslation(), scoreChoosers[0].get());
 
     paths.add(startPath.getPathPoses().toArray(new Pose2d[startPath.getPathPoses().size()]));
-    // This is really cursed dont do this
-    Pose2d[] duplicatedArray = new Pose2d[paths.get(0).length * 2];
-
-    for (int i = 0; i < paths.get(0).length; i++) {
-      duplicatedArray[i] = paths.get(0)[i];
-      duplicatedArray[paths.get(0).length * 2 - 1 - i] = paths.get(0)[i];
-    }
-
-    paths.set(0, duplicatedArray);
-    autonPath = AutoBuilder.followPath(startPath);
+    autonPath = Commands.sequence(trajectoryDisplay(startPath), AutoBuilder.followPath(startPath));
 
     for (int i = 0; i < scoreChoosers.length - 1; i++) {
       PathPlannerPath path1 =
@@ -125,17 +132,14 @@ public class CustomAutoBuilder {
 
       autonPath =
           Commands.sequence(
-              autonPath, 
-              Commands.runOnce(() -> m_field.getObject("traj").setPoses(
-                path1.getPathPoses().toArray(new Pose2d[path1.getPathPoses().size()])
-              )),
-              AutoBuilder.followPath(path1), 
-              Commands.runOnce(() -> m_field.getObject("traj").setPoses(
-                path2.getPathPoses().toArray(new Pose2d[path2.getPathPoses().size()])
-              )),
+              autonPath,
+              trajectoryDisplay(path1),
+              AutoBuilder.followPath(path1),
+              trajectoryDisplay(path2),
               AutoBuilder.followPath(path2));
     }
-    m_field.getObject("traj").setPoses(paths.get(displayChooser.get()));
+
+    trajectoryDisplay(paths.get(displayChooser.get()));
   }
 
   public static Command getAutonCommand(Drive drive) {
@@ -182,6 +186,7 @@ public class CustomAutoBuilder {
     }
     return startChooser.get();
   }
+
   /**
    * Generates a list of waypoints for a path between a given start and end point. The method
    * considers intersected planes and uses a neural network model to determine optimal control

@@ -23,7 +23,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.*;
-import frc.robot.commands.AlignReefAprilTag;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorTuning;
 import frc.robot.generated.TunerConstants;
@@ -35,7 +34,6 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.mechanism.Elevator;
-import frc.robot.subsystems.vision.AprilTag2D;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
@@ -53,7 +51,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   // private final ObjectDetection m_ObjectDetection;
-//   private final AprilTag2D m_AprilTag2D;
+  //   private final AprilTag2D m_AprilTag2D;
   private final Elevator m_Elevator;
   private final Vision m_Vision;
   private final Field m_Field;
@@ -76,11 +74,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        m_Vision = new Vision(
-            drive::addVisionMeasurement,
-            new VisionIOPhotonVision(
-                VisionConstants.reefCamName, 
-                VisionConstants.robotToReefCam));
+        m_Vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.reefCamName, VisionConstants.robotToReefCam));
         break;
 
       case SIM:
@@ -92,12 +90,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
-        m_Vision = new Vision(
-            drive::addVisionMeasurement,
-            new VisionIOPhotonVisionSim(
-                VisionConstants.reefCamName, 
-                VisionConstants.robotToReefCam, 
-                drive::getPose));
+        m_Vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.reefCamName, VisionConstants.robotToReefCam, drive::getPose));
         break;
 
       default:
@@ -170,22 +167,28 @@ public class RobotContainer {
     // controller.rightBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, false));
 
     // Lock to 0° when A button is held
-    controller.a().whileTrue(
-        DriveCommands.joystickDriveAtAngle(
-            drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
-            () -> new Rotation2d()));
+    controller
+        .a()
+        .whileTrue(
+            DriveCommands.joystickDriveAtAngle(
+                drive,
+                () -> -controller.getLeftY(),
+                () -> -controller.getLeftX(),
+                () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
     // Reset gyro to 0° when B button is pressed
-    controller.back().onTrue(
-        Commands.runOnce(
-            () -> drive.setPose(
-                new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-            drive).ignoringDisable(true));
+    controller
+        .back()
+        .onTrue(
+            Commands.runOnce(
+                    () ->
+                        drive.setPose(
+                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                    drive)
+                .ignoringDisable(true));
   }
 
   /**
