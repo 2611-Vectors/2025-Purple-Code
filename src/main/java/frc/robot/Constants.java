@@ -83,7 +83,7 @@ public final class Constants {
 
     // Basic filtering thresholds
     public static double maxAmbiguity = 0.3;
-    public static double maxZError = 0.75;
+    public static double maxZError = 0.1;
 
     // Standard deviation baselines, for 1 meter distance and 1 tag
     // (Adjusted automatically based on distance and # of tags)
@@ -117,7 +117,7 @@ public final class Constants {
     public static final Pose2d R1 = new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
     public static final Pose2d R0 = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
 
-    public static final double MAX_VELOCITY = 1;
-    public static final double MAX_ACCELERATION = 0.75;
+    public static final double MAX_VELOCITY = 1; // 5.1
+    public static final double MAX_ACCELERATION = 0.75; // 2.9
   }
 }
