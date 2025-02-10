@@ -55,11 +55,11 @@ public final class Constants {
   public static double ELEVATOR_I = 0;
   public static double ELEVATOR_D = 0;
 
-  public static double TURNING_OBJECT_DECTION_P = 0.05;
+  public static double TURNING_OBJECT_DECTION_P = 0.02;
   public static double TURNING_OBJECT_DECTION_I = 0.0;
   public static double TURNING_OBJECT_DECTION_D = 0.0;
 
-  public static double FORWARD_OBJECT_DECTION_P = 0.05;
+  public static double FORWARD_OBJECT_DECTION_P = 0.25;
   public static double FORWARD_OBJECT_DECTION_I = 0.0;
   public static double FORWARD_OBJECT_DECTION_D = 0.0;
 
@@ -114,7 +114,7 @@ public final class Constants {
     public static final Pose2d IJ = new Pose2d(5.3, 5.3, Rotation2d.fromDegrees(-120));
     public static final Pose2d KL = new Pose2d(3.8, 5.3, Rotation2d.fromDegrees(-60));
 
-    public static final Pose2d R1 = new Pose2d(1.5, 6.6, Rotation2d.fromDegrees(-60));
+    public static final Pose2d R1 = new Pose2d(2, 6.1, Rotation2d.fromDegrees(-150));
     public static final Pose2d R0 = new Pose2d(1.5, 1.4, Rotation2d.fromDegrees(60));
 
     public static final double MAX_VELOCITY = 1; // 5.1

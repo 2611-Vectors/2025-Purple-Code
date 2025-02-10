@@ -113,13 +113,17 @@ public class CustomAutoBuilder {
     return path.getPathPoses().toArray(new Pose2d[path.getPathPoses().size()]);
   }
 
+  public static ArrayList<Command> drivePaths;
+
   public static void update() {
     ArrayList<Pose2d[]> paths = new ArrayList<>();
+    drivePaths = new ArrayList<>();
     startPath = getPathFromPoints(startChooser.get().getTranslation(), scoreChoosers[0].get());
 
     paths.add(startPath.getPathPoses().toArray(new Pose2d[startPath.getPathPoses().size()]));
     autonPath = Commands.sequence(trajectoryDisplay(startPath), AutoBuilder.followPath(startPath));
-
+    drivePaths.add(
+        Commands.sequence(trajectoryDisplay(startPath), AutoBuilder.followPath(startPath)));
     for (int i = 0; i < scoreChoosers.length - 1; i++) {
       PathPlannerPath path1 =
           getPathFromPoints(scoreChoosers[i].get().getTranslation(), loadStationChoosers[i].get());
@@ -130,6 +134,8 @@ public class CustomAutoBuilder {
       paths.add(path1.getPathPoses().toArray(new Pose2d[path1.getPathPoses().size()]));
       paths.add(path2.getPathPoses().toArray(new Pose2d[path2.getPathPoses().size()]));
 
+      drivePaths.add(Commands.sequence(trajectoryDisplay(path1), AutoBuilder.followPath(path1)));
+      drivePaths.add(Commands.sequence(trajectoryDisplay(path2), AutoBuilder.followPath(path2)));
       autonPath =
           Commands.sequence(
               autonPath,
@@ -138,8 +144,12 @@ public class CustomAutoBuilder {
               trajectoryDisplay(path2),
               AutoBuilder.followPath(path2));
     }
-
     trajectoryDisplay(paths.get(displayChooser.get()));
+  }
+
+  public static Command[] getDrivePaths() {
+    Command[] arr = new Command[drivePaths.size()];
+    return drivePaths.toArray(arr);
   }
 
   public static Command getAutonCommand(Drive drive) {
