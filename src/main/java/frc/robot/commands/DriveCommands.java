@@ -25,8 +25,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
@@ -102,6 +102,7 @@ public class DriveCommands {
         },
         drive);
   }
+
   /**
    * Robot relative drive command using two joysticks (controlling linear and angular velocities).
    */
@@ -128,10 +129,31 @@ public class DriveCommands {
                   linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
                   linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
                   omega * drive.getMaxAngularSpeedRadPerSec());
-          drive.runVelocity(ChassisSpeeds.fromRobotRelativeSpeeds(speeds, drive.getRotation()));
+          drive.runVelocity(speeds);
         },
         drive);
   }
+
+  public static void robotRelativeDrive(
+      Drive drive, double xSupplier, double ySupplier, double omegaSupplier) {
+    // Get linear velocity
+    Translation2d linearVelocity = getLinearVelocityFromJoysticks(xSupplier, ySupplier);
+
+    // Apply rotation deadband
+    double omega = MathUtil.applyDeadband(omegaSupplier, DEADBAND);
+
+    // Square rotation value for more precise control
+    omega = Math.copySign(omega * omega, omega);
+
+    // Convert to field relative speeds & send command
+    ChassisSpeeds speeds =
+        new ChassisSpeeds(
+            linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+            linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+            omega * drive.getMaxAngularSpeedRadPerSec());
+    drive.runVelocity(speeds);
+  }
+
   /**
    * Field relative drive command using joystick for linear control and PID for angular control.
    * Possible use cases include snapping to an angle, aiming at a vision target, or controlling
@@ -317,7 +339,9 @@ public class DriveCommands {
                               + " meters, "
                               + formatter.format(Units.metersToInches(wheelRadius))
                               + " inches");
-                      SmartDashboard.putString("Calculated Wheel Radius (inches)", formatter.format(Units.metersToInches(wheelRadius)));
+                      SmartDashboard.putString(
+                          "Calculated Wheel Radius (inches)",
+                          formatter.format(Units.metersToInches(wheelRadius)));
                     })));
   }
 

@@ -22,9 +22,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.*;
+import frc.robot.commands.CoralDetectionTest;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorTuning;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.dashboard.Field;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -32,8 +35,11 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.mechanism.Elevator;
-import frc.robot.subsystems.vision.AprilTag2D;
 import frc.robot.subsystems.vision.ObjectDetection;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import frc.robot.util.CustomAutoBuilder;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -47,8 +53,10 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final ObjectDetection m_ObjectDetection;
-  private final AprilTag2D m_AprilTag2D;
+  //   private final AprilTag2D m_AprilTag2D;
   private final Elevator m_Elevator;
+  private final Vision m_Vision;
+  private final Field m_Field;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -68,6 +76,11 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+        m_Vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVision(
+                    VisionConstants.reefCamName, VisionConstants.robotToReefCam));
         break;
 
       case SIM:
@@ -79,6 +92,11 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+        m_Vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIOPhotonVisionSim(
+                    VisionConstants.reefCamName, VisionConstants.robotToReefCam, drive::getPose));
         break;
 
       default:
@@ -90,10 +108,12 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        m_Vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
         break;
     }
     m_ObjectDetection = new ObjectDetection(drive, controller);
-    m_AprilTag2D = new AprilTag2D();
+    m_Field = new Field(drive);
+    // m_AprilTag2D = new AprilTag2D();
     m_Elevator = new Elevator();
 
     m_Elevator.setDefaultCommand(new ElevatorTuning(m_Elevator, operatorController));
@@ -132,37 +152,22 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY() * 0.5,
-            () -> -controller.getLeftX() * 0.5,
-            () -> -controller.getRightX() * 0.51));
+            () -> -controller.getLeftY(),
+            () -> -controller.getLeftX(),
+            () -> -controller.getRightX()));
 
     // Rotate to GamePiece if it sees one
-    // controller
-    //     .b()
-    //     .whileTrue(
-    //         DriveCommands.robotRelativeDrive(
-    //             drive,
-    //             () -> m_ObjectDetection.getRawForward(),
-    //             () -> 0,
-    //             () -> m_ObjectDetection.getRotation()));
-    // controller
-    //     .leftBumper()
-    //     .whileTrue(
-    //         DriveCommands.robotRelativeDrive(
-    //             drive,
-    //             () -> m_AprilTag2D.getRawForward(4.7),
-    //             () -> m_AprilTag2D.getRawStrafe(17),
-    //             () -> 0))
-    //     .onFalse(DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0));
-    // controller
-    //     .rightBumper()
-    //     .whileTrue(
-    //         DriveCommands.robotRelativeDrive(
-    //             drive,
-    //             () -> m_AprilTag2D.getRawForward(4.7),
-    //             () -> m_AprilTag2D.getRawStrafe(-15),
-    //             () -> 0))
-    //     .onFalse(DriveCommands.robotRelativeDrive(drive, () -> 0, () -> 0, () -> 0));
+    controller
+        .b()
+        .whileTrue(
+            DriveCommands.robotRelativeDrive(
+                drive,
+                () -> 0,
+                () -> -m_ObjectDetection.getRawForward(),
+                () -> m_ObjectDetection.getRotation()));
+
+    // controller.leftBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, true));
+    // controller.rightBumper().whileTrue(new AlignReefAprilTag(drive, m_AprilTag2D, false));
 
     // Lock to 0° when A button is held
     controller
@@ -196,7 +201,11 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     drive.setPose(CustomAutoBuilder.getStartPose2d());
-    return CustomAutoBuilder.getAutonCommand(drive);
+    drive.setPoseNoVision(CustomAutoBuilder.getStartPose2d());
+    // return CustomAutoBuilder.getAutonCommand(drive, m_AprilTag2D);
+    // return CustomAutoBuilder.getAutonCommand(drive);
+    return new CoralDetectionTest(drive, m_ObjectDetection);
     // return AutoBuilder.buildAuto("Forward Auto");
+    // return autoChooser.get();
   }
 }

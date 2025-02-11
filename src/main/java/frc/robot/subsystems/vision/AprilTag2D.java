@@ -15,7 +15,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class AprilTag2D extends SubsystemBase {
-  PhotonCamera camera = new PhotonCamera("Front AprilTag Camera");
+  PhotonCamera camera = new PhotonCamera("ReefTagCam");
   PIDController strafePID;
   public double yaw, area;
   public boolean bTarget = false;
@@ -64,15 +64,20 @@ public class AprilTag2D extends SubsystemBase {
       }
       // Iterates through the "targets" or game pieces the pi dectects
       for (PhotonTrackedTarget tracked : result.targets) {
-        // Getting tracked target properties
-        area = tracked.area;
-        yaw = tracked.yaw;
-        bTarget = true;
-        double pitch = tracked.pitch;
-        // Logging target properties
-        Logger.recordOutput("AprilTag/Area", area);
-        Logger.recordOutput("AprilTag/Yaw", yaw);
-        Logger.recordOutput("AprilTag/Pitch", pitch);
+        if (tracked.getFiducialId() == 6) {
+          // Getting tracked target properties
+          area = tracked.area;
+          yaw = tracked.yaw;
+          bTarget = true;
+          double pitch = tracked.pitch;
+          // Logging target properties
+          Logger.recordOutput("AprilTag/Area", area);
+          Logger.recordOutput("AprilTag/Yaw", yaw);
+          Logger.recordOutput("AprilTag/Pitch", pitch);
+        } else {
+          bTarget = false;
+          yaw = 0;
+        }
       }
     }
   }

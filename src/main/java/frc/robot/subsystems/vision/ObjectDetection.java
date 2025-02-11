@@ -19,7 +19,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 public class ObjectDetection extends SubsystemBase {
-  PhotonCamera camera = new PhotonCamera("Front Camera");
+  PhotonCamera camera = new PhotonCamera("Object_Detection_Camera");
   TunablePIDController turnPID;
   PIDController forwardPID;
   Drive drive;
@@ -47,11 +47,12 @@ public class ObjectDetection extends SubsystemBase {
   }
 
   public double getRotation() {
+    Logger.recordOutput("/Object Detection/Rotation", turnPID.calculate(yaw, 0));
     return turnPID.calculate(yaw, 0);
   }
 
   public double getRawForward() {
-    return MathUtil.clamp(forwardPID.calculate(pitch, 0), -0.5, 0.5);
+    return MathUtil.clamp(forwardPID.calculate(pitch, -13), -0.5, 0.5);
   }
 
   public void updateProperties() {
@@ -76,7 +77,7 @@ public class ObjectDetection extends SubsystemBase {
 
       if (objectLostTimer.hasElapsed(0.15)) {
         yaw = 0;
-        pitch = 0;
+        pitch = -13;
       }
 
       // Iterates through the "targets" or game pieces the pi dectects
@@ -102,6 +103,7 @@ public class ObjectDetection extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     turnPID.update();
+
     updateProperties();
   }
 }

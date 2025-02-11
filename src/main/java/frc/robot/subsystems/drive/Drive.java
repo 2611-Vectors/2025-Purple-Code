@@ -69,9 +69,9 @@ public class Drive extends SubsystemBase {
               Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 25.85;
-  private static final double ROBOT_MOI = 2.40154;
-  private static final double WHEEL_COF = 1.2;
+  private static final double ROBOT_MASS_KG = 33.112;
+  private static final double ROBOT_MOI = 2.7;
+  private static final double WHEEL_COF = 0.88;
   private static final RobotConfig PP_CONFIG =
       new RobotConfig(
           ROBOT_MASS_KG,
@@ -105,6 +105,8 @@ public class Drive extends SubsystemBase {
       };
   private SwerveDrivePoseEstimator poseEstimator =
       new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+  public SwerveDrivePoseEstimator noVisionPoseEstimator =
+      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
 
   public Drive(
       GyroIO gyroIO,
@@ -135,7 +137,8 @@ public class Drive extends SubsystemBase {
         PP_CONFIG,
         () ->
             DriverStation.getAlliance().orElse(Alliance.Blue)
-                == Alliance.Red, // Flip the path based off the FMS to red or blue
+                == Alliance.Red, // Flip the path based off the FMS to
+        // red or blue
         this);
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
@@ -213,8 +216,9 @@ public class Drive extends SubsystemBase {
 
       // Apply update
       poseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
+      noVisionPoseEstimator.updateWithTime(sampleTimestamps[i], rawGyroRotation, modulePositions);
     }
-
+    Logger.recordOutput("TestOdometry/No Vision", noVisionPoseEstimator.getEstimatedPosition());
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
   }
@@ -338,6 +342,10 @@ public class Drive extends SubsystemBase {
   /** Resets the current odometry pose. */
   public void setPose(Pose2d pose) {
     poseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
+  }
+
+  public void setPoseNoVision(Pose2d pose) {
+    noVisionPoseEstimator.resetPosition(rawGyroRotation, getModulePositions(), pose);
   }
 
   /** Adds a new timestamped vision measurement. */
