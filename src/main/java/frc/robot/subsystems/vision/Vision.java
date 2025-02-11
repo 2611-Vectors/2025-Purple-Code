@@ -36,6 +36,7 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 public class Vision extends SubsystemBase {
   private final VisionConsumer consumer;
+  private final PoseConsumer botPose;
   private final VisionIO[] io;
   private final VisionIOInputs[] inputs;
   private final Alert[] disconnectedAlerts;
@@ -43,8 +44,9 @@ public class Vision extends SubsystemBase {
   LinearFilter filterY = LinearFilter.movingAverage(5);
   LinearFilter filterX = LinearFilter.movingAverage(5);
 
-  public Vision(VisionConsumer consumer, VisionIO... io) {
+  public Vision(PoseConsumer botPose, VisionConsumer consumer, VisionIO... io) {
     this.consumer = consumer;
+    this.botPose = botPose;
     this.io = io;
 
     // Initialize inputs
@@ -120,7 +122,8 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() < 0.0
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
-                || observation.pose().getY() > aprilTagLayout.getFieldWidth();
+                || observation.pose().getY() > aprilTagLayout.getFieldWidth()
+                || observation.pose().getX() > botPose.getPose().getX() + maxXYError;
 
         // Add pose to log
         robotPoses.add(observation.pose());
@@ -202,5 +205,10 @@ public class Vision extends SubsystemBase {
         Pose2d visionRobotPoseMeters,
         double timestampSeconds,
         Matrix<N3, N1> visionMeasurementStdDevs);
+  }
+
+  @FunctionalInterface
+  public static interface PoseConsumer {
+    public Pose2d getPose();
   }
 }
