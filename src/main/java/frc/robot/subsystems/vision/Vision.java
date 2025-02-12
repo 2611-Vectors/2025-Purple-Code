@@ -123,6 +123,8 @@ public class Vision extends SubsystemBase {
                 || observation.pose().getX() > aprilTagLayout.getFieldLength()
                 || observation.pose().getY() < 0.0
                 || observation.pose().getY() > aprilTagLayout.getFieldWidth()
+
+                // Must be a similar pose to the bot's current pose
                 || observation.pose().getX() > botPose.getPose().getX() + maxXYError
                 || observation.pose().getX() < botPose.getPose().getX() - maxXYError
                 || observation.pose().getY() > botPose.getPose().getY() + maxXYError
