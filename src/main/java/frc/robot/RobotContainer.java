@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.*;
-import frc.robot.commands.CoralDetectionTest;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.ElevatorTuning;
 import frc.robot.generated.TunerConstants;
@@ -40,7 +40,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import frc.robot.util.CustomAutoBuilder;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -200,12 +199,12 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    drive.setPose(CustomAutoBuilder.getStartPose2d());
-    drive.setPoseNoVision(CustomAutoBuilder.getStartPose2d());
+    // drive.setPose(CustomAutoBuilder.getStartPose2d());
+    // drive.setPoseNoVision(CustomAutoBuilder.getStartPose2d());
     // return CustomAutoBuilder.getAutonCommand(drive, m_AprilTag2D);
     // return CustomAutoBuilder.getAutonCommand(drive);
-    return new CoralDetectionTest(drive, m_ObjectDetection);
+    // return new CoralDetectionTest(drive, m_ObjectDetection);
     // return AutoBuilder.buildAuto("Forward Auto");
-    // return autoChooser.get();
+    return autoChooser.get();
   }
 }

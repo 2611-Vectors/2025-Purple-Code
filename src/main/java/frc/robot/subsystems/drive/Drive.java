@@ -128,8 +128,8 @@ public class Drive extends SubsystemBase {
 
     // Configure AutoBuilder for PathPlanner
     AutoBuilder.configure(
-        this::getPose,
-        this::setPose,
+        this::getNoVisionPose,
+        this::setPoseNoVision,
         this::getChassisSpeeds,
         this::runVelocity,
         new PPHolonomicDriveController(
@@ -332,6 +332,10 @@ public class Drive extends SubsystemBase {
   @AutoLogOutput(key = "Odometry/Robot")
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
+  }
+
+  public Pose2d getNoVisionPose() {
+    return noVisionPoseEstimator.getEstimatedPosition();
   }
 
   /** Returns the current odometry rotation. */
