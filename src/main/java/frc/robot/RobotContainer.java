@@ -78,6 +78,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         m_Vision =
             new Vision(
+                drive::getPose,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     VisionConstants.reefCamName, VisionConstants.robotToReefCam));
@@ -94,6 +95,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
         m_Vision =
             new Vision(
+                drive::getPose,
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
                     VisionConstants.reefCamName, VisionConstants.robotToReefCam, drive::getPose));
@@ -108,7 +110,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        m_Vision = new Vision(drive::addVisionMeasurement, new VisionIO() {});
+        m_Vision = new Vision(drive::getPose, drive::addVisionMeasurement, new VisionIO() {});
         break;
     }
     m_ObjectDetection = new ObjectDetection(drive, controller);
